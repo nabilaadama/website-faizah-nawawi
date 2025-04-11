@@ -12,6 +12,7 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "firebase": "^11.6.0",
+    "lucide-react": "^0.487.0",
     "next": "14.0.3",
     "react": "^18",
     "react-dom": "^18"
