@@ -11,7 +11,7 @@ export default function Header() {
         <Link href="/">
           <div className="flex items-center cursor-pointer">
            <img
-            src="\assets\logo-samping.png"
+            src="\assets\logosamping.png"
             alt="logo-samping"
             className="h-10 w-auto" 
            ></img>           
@@ -36,7 +36,7 @@ export default function Header() {
         <Link href="/cart" className="text-gray-700 hover:text-yellow-500">
           <ShoppingCart size={24} />
         </Link>
-        <Link href="/login" className="text-gray-700 font-medium hover:text-yellow-500">
+        <Link href="/signin" className="text-gray-700 font-medium hover:text-yellow-500">
           Signin
         </Link>
       </div>
