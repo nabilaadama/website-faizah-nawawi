@@ -7,7 +7,7 @@ export default function Hero() {
     <div className="relative w-full h-64 md:h-80 lg:h-96">
       <img 
         className="flex inset-0 bg-cover bg-center" 
-        src="\assets\herocatalog.png"
+        src="\assets\-catalog.png"
         alt="fashion show"
       ></img>
       
