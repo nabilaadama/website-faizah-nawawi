@@ -1,6 +1,4 @@
-import { AuthProvider } from "../../presentation/providers/auth-provider";
-
-export default function RootLayout({
+export default function LoginAdminLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -8,7 +6,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <main>{children}</main>
       </body>
     </html>
   );

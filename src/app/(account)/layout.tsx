@@ -5,7 +5,7 @@ export default function AccountLayout({
 }) {
   return (
     <div>
-      <h2>Account Pages</h2>
+      {/* <h2>Account Pages</h2> */}
       {children}
     </div>
   );
