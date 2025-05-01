@@ -138,7 +138,7 @@ export default function Catalog() {
                   id="category-men"
                   checked={selectedCategories.includes("men")}
                   onChange={() => handleCategoryChange("men")}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="h-4 w-4 text-[#FFC30C] border-gray-300 rounded focus:ring-[#FFC30C]"
                 />
                 <label htmlFor="category-men" className="ml-2 text-sm text-gray-700">
                   Men's fashion
@@ -152,7 +152,7 @@ export default function Catalog() {
                   id="category-women"
                   checked={selectedCategories.includes("women")}
                   onChange={() => handleCategoryChange("women")}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="h-4 w-4 text-[#FFC30C] border-gray-300 rounded focus:ring-[#FFC30C]"
                 />
                 <label htmlFor="category-women" className="ml-2 text-sm text-gray-700">
                   Women's fashion
@@ -166,7 +166,7 @@ export default function Catalog() {
                   id="category-accessories"
                   checked={selectedCategories.includes("accessories")}
                   onChange={() => handleCategoryChange("accessories")}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="h-4 w-4 text-[#FFC30C] border-gray-300 rounded focus:ring-[#FFC30C]"
                 />
                 <label htmlFor="category-accessories" className="ml-2 text-sm text-gray-700">
                   Accessories
@@ -185,7 +185,7 @@ export default function Catalog() {
                   name="sort"
                   checked={sortOption === "newest"}
                   onChange={() => handleSortChange("newest")}
-                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  className="h-4 w-4 text-[#FFC30C] border-gray-300 focus:ring-[#FFC30C]"
                 />
                 <label htmlFor="sort-newest" className="ml-2 text-sm text-gray-700">
                   Newest
@@ -228,8 +228,8 @@ export default function Catalog() {
           <div className="flex-grow">
             {isLoading ? (
               <div className="flex justify-center items-center py-20">
-                <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
-                <span className="ml-2 text-gray-600">Loading products...</span>
+                <Loader2 className="h-8 w-8 text-[#FFC30C] animate-spin" />
+                <span className="ml-2 text-[#FFC30C]">Loading products...</span>
               </div>
             ) : error ? (
               <div className="bg-red-50 p-4 rounded-lg text-center">
@@ -250,7 +250,7 @@ export default function Catalog() {
                       setSearchQuery("");
                       setSortOption("newest");
                     }}
-                    className="text-blue-600 hover:text-blue-800 font-medium"
+                    className="text-[#FFC30C]/70 hover:text-[#FFC30C] font-medium"
                   >
                     Clear all filters
                   </button>
