@@ -8,6 +8,16 @@ const config: Config = {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    extend: {
+      fontFamily: {
+        montserrat: ['Montserrat'],
+      },
+      colors: {
+        'custom-brown': '#1C1501',
+      },
+    },
+  },
+  plugins: [],
   	extend: {
   		backgroundImage: {
   			'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
