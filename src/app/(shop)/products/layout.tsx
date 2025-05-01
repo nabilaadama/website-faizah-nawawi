@@ -5,7 +5,7 @@ export default function ShopLayout({
 }) {
   return (
     <div>
-      <h2>Shop Pages</h2>
+      
       {children}
     </div>
   );
