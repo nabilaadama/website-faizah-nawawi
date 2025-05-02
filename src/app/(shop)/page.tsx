@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 export default function Home() {
   return (
-    <main className="font-sans bg-white">
+    <main className="bg-white">
       <Header />
 
       {/* Hero Section */}
