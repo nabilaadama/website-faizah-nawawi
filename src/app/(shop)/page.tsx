@@ -1,5 +1,4 @@
-'use client'
-
+// pages/index.tsx
 import Image from 'next/image'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
@@ -16,7 +15,7 @@ export default function Home() {
           <div className="max-w-xl space-y-4">
             <h1 className="text-4xl font-bold text-[#1C1501]">Modest Fashion</h1>
             <p className="text-[#1C1521]">
-              Lorem ipsum dolor, sit amet consectetur adipisicing elit...
+              Lorem ipsum dolor, sit amet consectetur adipisicing elit. Eos voluptate dicta natus, debitis assumenda quaerat nemo.
             </p>
             <button className="inline-flex items-center gap-2 px-6 py-2 mt-4 text-white bg-[#1C1501] hover:bg-black transition rounded-xl shadow-md">
               Jelajahi Sekarang
@@ -31,8 +30,9 @@ export default function Home() {
             <Image
               src="/model.png"
               alt="Model"
-              fill
-              className="relative z-10 object-cover rounded-[60px]"
+              width={300}
+              height={400}
+              className="relative z-10 object-cover"
             />
             <div className="absolute top-5 right-6 z-20 grid grid-cols-3 gap-1">
               {[...Array(9)].map((_, i) => (
