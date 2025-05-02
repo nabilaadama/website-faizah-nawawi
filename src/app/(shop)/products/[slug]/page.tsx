@@ -9,6 +9,8 @@ import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { Star } from 'lucide-react';
 import Link from 'next/link';
+import { useCart } from '@/context/CartContext';
+import { toast } from 'react-hot-toast';
 
 interface Review {
   id: string;
@@ -30,6 +32,8 @@ export default function ProductDetails() {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<ProductImage | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+  const [quantity, setQuantity] = useState<number>(1);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -90,11 +94,35 @@ export default function ProductDetails() {
 
   const handleAddToCart = () => {
     if (!product) return;
-    console.log("Added to cart:", {
+    
+    addToCart({
       productId: product.id,
-      variant: selectedVariant,
-      quantity: 1
+      name: product.name,
+      price: selectedVariant?.price || product.basePrice,
+      image: product.images[0]?.url || '',
+      variant: selectedVariant
+        ? {
+            color: selectedVariant.color,
+            size: selectedVariant.size,
+          }
+        : undefined,
     });
+
+    // Show success notification
+    toast.success(`${product.name} added to cart!`, {
+      position: 'bottom-right',
+      duration: 3000,
+    });
+  };
+
+  const increaseQuantity = () => {
+    setQuantity(prev => prev + 1);
+  };
+
+  const decreaseQuantity = () => {
+    if (quantity > 1) {
+      setQuantity(prev => prev - 1);
+    }
   };
 
   if (isLoading) {
@@ -294,6 +322,28 @@ export default function ProductDetails() {
                   )}
                 </div>
               )}
+              
+              {/* Quantity Selector */}
+              <div className="flex items-center space-x-4 pt-2">
+                <span className="text-sm font-medium text-gray-900">Quantity</span>
+                <div className="flex items-center border border-gray-300 rounded-md">
+                  <button
+                    onClick={decreaseQuantity}
+                    className="px-3 py-1 text-gray-600 hover:bg-gray-100"
+                  >
+                    -
+                  </button>
+                  <span className="px-4 py-1 border-x border-gray-300">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={increaseQuantity}
+                    className="px-3 py-1 text-gray-600 hover:bg-gray-100"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
               
               {/* Description */}
               <div className="pt-2">
