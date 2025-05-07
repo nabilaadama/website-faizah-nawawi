@@ -135,7 +135,7 @@ export default function Signup() {
           <p className="mt-4 text-sm text-center text-gray-800">
             Sudah punya akun?{" "}
             <span
-              onClick={() => router.push("/auth/signin")}
+              onClick={() => router.push("/login")}
               className="font-bold text-black cursor-pointer hover:underline"
             >
               Sign In
