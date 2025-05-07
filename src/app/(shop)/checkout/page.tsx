@@ -1,5 +1,6 @@
 import React from "react";
 import { PhoneIcon, MapPinIcon } from "@heroicons/react/24/outline"; // Pastikan install heroicons
+import Link from 'next/link';
 
 export default function Checkout() {
   return (
@@ -112,14 +113,17 @@ export default function Checkout() {
                 <p className="text-gray-600 text-black">Subtotal</p>
                 <p>Rpxxxx</p>
               </div>
-              <div className="flex justify-between font-bold text-lg text-black">
+              <div className="flex justify-between font-bold text-lg text-black mb-4">
                 <p>Total</p>
                 <p>Rpxxxx</p>
               </div>
 
-              <button className="w-full h-[45px] bg-yellow-400 hover:bg-yellow-500 transition px-10 py-2 rounded-2xl shadow-md text-white font-semibold py-3 rounded-[18px] mt-4">
+              <Link
+                href="/paymentconfirmation"
+                className="block w-full h-[50px] bg-yellow-400 hover:bg-yellow-500 transition text-center py-3 rounded-2xl shadow-md text-white font-semibold"
+              >
                 Konfirmasi Orderan
-              </button>
+              </Link>
             </div>
           </div>
         </div>
