@@ -2,6 +2,8 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { auth } from '@/lib/firebase/firebase-config';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export default function Signin() {
   const router = useRouter();
@@ -15,31 +17,18 @@ export default function Signin() {
 
     const form = event.currentTarget;
     const email = (form.elements.namedItem("email") as HTMLInputElement).value;
-    const password = (form.elements.namedItem("password") as HTMLInputElement)
-      .value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Login gagal");
-      }
-
-      router.push("/"); 
+      // Gunakan Firebase Auth langsung
+      await signInWithEmailAndPassword(auth, email, password);
+      
+      // Redirect setelah login berhasil
+      const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/';
+      router.push(redirectUrl);
     } catch (err: any) {
       console.error("Login error:", err);
-      setError(err.message);
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }

@@ -1,3 +1,4 @@
+// app/cart/page.tsx
 "use client";
 
 import { useCart } from '@/context/CartContext';
@@ -5,6 +6,10 @@ import Header from '@/components/header';
 import Footer from '@/components/footer';
 import Link from 'next/link';
 import { Minus, Plus, Trash2 } from 'lucide-react';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { auth } from '@/lib/firebase/firebase-config';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function CartPage() {
   const {
@@ -13,7 +18,35 @@ export default function CartPage() {
     updateQuantity,
     cartTotal,
     itemCount,
+    user,
+    loading,
   } = useCart();
+  
+  const router = useRouter();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user && !loading) {
+        router.push('/login?redirect=/cart');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [loading, router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <p className="text-gray-600 mb-4">Loading your cart...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -44,7 +77,17 @@ export default function CartPage() {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">My Cart</h1>
         
-        {cartItems.length === 0 ? (
+        {!user ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 mb-4">You need to login to view your cart</p>
+            <Link
+              href="/login?redirect=/cart"
+              className="px-6 py-2 bg-[#FFC30C] text-white rounded-full hover:bg-yellow-500 transition-colors duration-200 inline-block"
+            >
+              Login
+            </Link>
+          </div>
+        ) : cartItems.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-600 mb-4">Your cart is empty</p>
             <Link
