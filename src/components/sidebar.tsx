@@ -30,7 +30,7 @@ const sidebarItems: SidebarItem[] = [
     children: [
       { label: 'User', link: '/admin/users' },
       { label: 'Product', link: '/admin/products' },
-      { label: 'Tambah Product', link: '/admin/products/new' },
+      { label: 'Tambah Category ', link: '/admin/products/new' },
     ],
   },
   {
@@ -41,13 +41,7 @@ const sidebarItems: SidebarItem[] = [
       { label: 'Booking Appointment', link: '/admin/bookingappoinment' },
     ],
   },
-  {
-    label: 'Manage Account',
-    icon: <User size={20} />,
-    children: [
-      { label: 'Profile Admin', link: '/admin/profile' },
-    ],
-  },
+  { label: 'Profile Admin', link: '/admin/profile', icon: <User size={20} /> },
 ];
 
 const Sidebar: React.FC = () => {
@@ -80,15 +74,15 @@ const Sidebar: React.FC = () => {
   return (
     <>
       {/* Sidebar */}
-      <div className={`h-screen ${isOpen ? 'w-72' : 'w-20'} bg-[#A67C52] text-white flex flex-col justify-between transition-all duration-300 fixed`}>
+      <div className={`h-full ${ isOpen ? 'w-72' : 'w-20'} bg-[#A67C52] text-white flex flex-col justify-between transition-all duration-300`}>
         {/* Header */}
         <div>
-          <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+          <div className="p-4 border-gray-700 flex justify-between items-center">
             {isOpen && (
               <img 
                 src="/assets/logosamping.png"
                 alt="Admin Panel Logo" 
-                className="h-12 w-auto"
+                className="h-12 w-auto mx-auto" // tambahkan mx-auto
               />
             )}
             <button onClick={toggleSidebar} className="text-white">
@@ -157,7 +151,7 @@ const Sidebar: React.FC = () => {
         </div>
 
         {/* Logout Button */}
-        <div className="p-4 border-t border-gray-700">
+        <div className="p-4 border-gray-700">
           <button
             onClick={() => setShowLogoutConfirm(true)}
             className="flex items-center justify-center gap-2 py-2 px-4 rounded hover:bg-[#8C6A4F] transition-colors w-full"
