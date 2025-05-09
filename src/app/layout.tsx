@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
+import { AuthProvider } from '@/context/auth-context';
 import ToasterProvider from '@/components/ToasterProvider';
 
 const inter = Montserrat({ subsets: ['latin'] });
@@ -19,10 +20,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <CartProvider>
-          {children}
-          <ToasterProvider />
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            {children}
+            <ToasterProvider />
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

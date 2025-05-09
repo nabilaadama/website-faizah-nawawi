@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase-config';
 import { Product, ProductImage, ProductVariant } from '@/core/entities/product';
 import Header from "@/components/header";
 import Footer from "@/components/footer";
-import { Star } from 'lucide-react';
+import { Star, Info } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { toast } from 'react-hot-toast';
@@ -26,6 +26,7 @@ interface ProductWithReviews extends Product {
 
 export default function ProductDetails() {
   const params = useParams();
+  const router = useRouter();
   const slug = params?.slug as string;
   const [product, setProduct] = useState<ProductWithReviews | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -33,7 +34,8 @@ export default function ProductDetails() {
   const [selectedImage, setSelectedImage] = useState<ProductImage | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
-  const { addToCart } = useCart();
+  const [isAddingToCart, setIsAddingToCart] = useState<boolean>(false);
+  const { addToCart, user } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -44,7 +46,6 @@ export default function ProductDetails() {
           return;
         }
 
-        // Try to get by slug first
         const productsRef = collection(db, "products");
         const slugQuery = query(productsRef, where("slug", "==", slug));
         const slugSnapshot = await getDocs(slugQuery);
@@ -92,27 +93,56 @@ export default function ProductDetails() {
     fetchProduct();
   }, [slug]);
 
-  const handleAddToCart = () => {
-    if (!product) return;
+  const handleAddToCart = async () => {
+    if (!product || isAddingToCart) return;
     
-    addToCart({
-      productId: product.id,
-      name: product.name,
-      price: selectedVariant?.price || product.basePrice,
-      image: product.images[0]?.url || '',
-      variant: selectedVariant
-        ? {
-            color: selectedVariant.color,
-            size: selectedVariant.size,
-          }
-        : undefined,
-    });
+    setIsAddingToCart(true);
+    
+    try {
+      const cartItem = {
+        productId: product.id,
+        name: product.name,
+        price: selectedVariant?.price || product.basePrice,
+        image: product.images[0]?.url || '',
+        variant: selectedVariant
+          ? {
+              color: selectedVariant.color,
+              size: selectedVariant.size,
+            }
+          : undefined,
+      };
 
-    // Show success notification
-    toast.success(`${product.name} added to cart!`, {
-      position: 'bottom-right',
-      duration: 3000,
-    });
+      if (!cartItem.productId || !cartItem.name || !cartItem.price) {
+        throw new Error('Incomplete product information');
+      }
+
+      await addToCart(cartItem);
+
+      toast.success(`${product.name} added to cart!`, {
+        position: 'bottom-right',
+        duration: 3000,
+      });
+    } catch (err) {
+      console.error('Error adding to cart:', err);
+      
+      let errorMessage = 'Failed to add item to cart. Please try again.';
+      
+      if (err instanceof Error) {
+        if (err.message.includes('logged in')) {
+          errorMessage = 'Please login to add items to cart';
+          router.push(`/login?redirect=/products/${slug}`);
+        } else if (err.message.includes('Incomplete product information')) {
+          errorMessage = 'Product information is incomplete';
+        }
+      }
+
+      toast.error(errorMessage, {
+        position: 'bottom-right',
+        duration: 3000,
+      });
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   const increaseQuantity = () => {
@@ -353,10 +383,26 @@ export default function ProductDetails() {
               {/* Add to Cart Button */}
               <button
                 onClick={handleAddToCart}
-                className="w-full md:w-auto px-6 py-3 bg-[#FFC30C] text-white rounded-full hover:bg-yellow-500 transition-colors duration-200"
+                disabled={isAddingToCart}
+                className={`w-full md:w-auto px-6 py-3 bg-[#FFC30C] text-white rounded-full hover:bg-yellow-500 transition-colors duration-200 ${
+                  isAddingToCart ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
               >
-                ADD TO CART
+                {isAddingToCart ? (
+                  'ADDING...'
+                ) : user ? (
+                  'ADD TO CART'
+                ) : (
+                  'LOGIN TO ADD TO CART'
+                )}
               </button>
+
+              {!user && (
+                <div className="flex items-center mt-2 text-sm text-gray-500">
+                  <Info className="w-4 h-4 mr-1" />
+                  <span>You need to login to add items to your cart</span>
+                </div>
+              )}
             </div>
           </div>
           
