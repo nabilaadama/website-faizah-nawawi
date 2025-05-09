@@ -44,8 +44,8 @@ export interface Product {
   description: string;
   basePrice: number;
   stock: number;
-  categoryId: string;
-  categoryName?: string;
+  categoryId: string[];
+  categoryName?: string[];
   images: ProductImage[];
   featured: boolean;
   available: boolean;
