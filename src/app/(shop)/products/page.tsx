@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 import Header from "@/components/header";
 import CatalogHero from '@/components/herocatalog';
 import { Product, Category, ProductVariant } from "@/core/entities/product";
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase-config';
 import Footer from '@/components/footer';
 import Link from 'next/link';
@@ -91,12 +91,6 @@ export default function Catalog() {
         
         const productsData = querySnapshot.docs.map(doc => {
           const data = doc.data();
-          // Ensure categoryId is always an array
-          const categoryId = Array.isArray(data.categoryId) ? data.categoryId : 
-                            data.categoryId ? [data.categoryId] : [];
-          // Ensure categoryName is always an array if present
-          const categoryName = Array.isArray(data.categoryName) ? data.categoryName : 
-                              data.categoryName ? [data.categoryName] : undefined;
           
           return {
             id: doc.id,
@@ -105,8 +99,8 @@ export default function Catalog() {
             description: data.description || "",
             basePrice: data.basePrice || 0,
             stock: data.stock || 0,
-            categoryId: categoryId,
-            categoryName: categoryName,
+            categoryId: data.categoryId || "", 
+            categoryName: data.categoryName || undefined,
             images: data.images || [],
             featured: data.featured || false,
             available: data.available !== undefined ? data.available : true,
@@ -135,15 +129,11 @@ export default function Catalog() {
     // Apply category filter
     if (selectedCategories.length > 0) {
       result = result.filter(product => {
-        // Use categoryId array directly since it's now an array in the new entity format
-        const productCategories = product.categoryId || [];
-        
-        // Product passes filter if it has at least one of the selected categories
-        return productCategories.some(catId => selectedCategories.includes(catId));
+        return selectedCategories.includes(product.categoryId);
       });
     }
     
-    // Apply search filter
+    // search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(product => 
@@ -152,7 +142,7 @@ export default function Catalog() {
       );
     }
     
-    // Apply sort
+    // sort
     result = result.sort((a, b) => {
       switch (sortOption) {
         case "newest":
@@ -169,34 +159,27 @@ export default function Catalog() {
     setFilteredProducts(result);
   }, [products, selectedCategories, sortOption, searchQuery]);
 
-  // Helper function to get primary image or first image
   const getProductImage = (product: Product) => {
     if (!product.images || product.images.length === 0) {
       return null;
     }
-    
-    // First try to find the primary image
+
     const primaryImage = product.images.find(img => img.isPrimary === true);
-    
-    // If a primary image is found, return it, otherwise return the first image
+
     return primaryImage || product.images[0];
   };
 
-  // Helper function to check if product has variants
   const hasVariants = (productId: string): boolean => {
     if (!productId) return false;
     return productVariants.some(variant => variant.productId === productId);
   };
 
-  // Helper function to check product availability based on stock and variants
   const isProductAvailable = (product: Product): boolean => {
-    // If product has variants, check if any variant has stock
     if (hasVariants(product.id)) {
       const variants = productVariants.filter(v => v.productId === product.id);
       return variants.some(variant => variant.stock > 0);
     }
-    
-    // If no variants, check product's own stock
+
     return product.stock > 0 && product.available;
   };
 
@@ -216,29 +199,15 @@ export default function Catalog() {
     e.preventDefault();
   };
 
-  // Get category names for a product
-  const getProductCategories = (product: Product): string => {
-    // Use categoryName directly if available
-    if (product.categoryName && product.categoryName.length > 0) {
-      return product.categoryName.join(", ");
+  const getProductCategory = (product: Product): string => {
+    if (product.categoryName) {
+      return product.categoryName;
     }
+
+    if (!product.categoryId) return "Uncategorized";
     
-    // Otherwise, look up category names from IDs
-    const productCategoryIds = product.categoryId || [];
-    
-    if (productCategoryIds.length === 0) return "Uncategorized";
-    
-    // Get category names
-    const categoryNames = productCategoryIds
-      .map(id => {
-        const category = categories.find(cat => cat.id === id);
-        return category?.name;
-      })
-      .filter(Boolean); // Remove undefined values
-    
-    return categoryNames.length > 0 
-      ? categoryNames.join(", ") 
-      : "Unknown Category";
+    const category = categories.find(cat => cat.id === product.categoryId);
+    return category?.name || "Unknown Category";
   };
 
   return (
@@ -413,7 +382,7 @@ export default function Catalog() {
                         </div>
                         <div className="p-4">
                           <h3 className="font-medium text-gray-900">{product.name}</h3>
-                          <p className="text-sm text-gray-500 capitalize mt-1">{getProductCategories(product)}</p>
+                          <p className="text-sm text-gray-500 capitalize mt-1">{getProductCategory(product)}</p>
                           <div className="mt-2 flex justify-between items-center">
                             <p className="font-semibold text-gray-900">Rp{product.basePrice.toLocaleString()}</p>
                             {hasVariants(product.id) && (
