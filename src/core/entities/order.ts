@@ -60,7 +60,6 @@ export interface Order {
   userId: string;
   orderNumber: string;
   shippingAddress: Address; 
-  shippingFee: number;
   subtotal: number;
   totalAmount: number;
   status:
