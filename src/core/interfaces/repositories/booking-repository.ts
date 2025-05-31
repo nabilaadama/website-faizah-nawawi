@@ -1,9 +1,9 @@
 import { Booking } from "@/core/entities/booking";
 
 export interface BookingRepository {
-  createBooking(
-    data: Omit<Booking, "id" | "createdAt" | "updatedAt" | "status">
-  ): Promise<Booking>;
-  updateBookingStatus(id: string, status: Booking["status"]): Promise<void>;
-  getAllBookings(): Promise<Booking[]>; // Untuk admin
+  getAllBookings(): Promise<Booking[]>;
+  getBookingById(id: string): Promise<Booking | null>;
+  updateBookingStatus(id: string, status: Booking['status']): Promise<void>;
+  deleteBooking(id: string): Promise<void>;
+  updateBooking(id: string, data: Partial<Booking>): Promise<void>;
 }
