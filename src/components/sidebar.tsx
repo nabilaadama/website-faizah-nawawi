@@ -30,7 +30,7 @@ const sidebarItems: SidebarItem[] = [
     children: [
       { label: 'User', link: '/admin/users' },
       { label: 'Product', link: '/admin/products' },
-      { label: 'Tambah Category ', link: '/admin/products/new' },
+      { label: 'Category ', link: '/admin/products/new' },
     ],
   },
   {
@@ -41,6 +41,7 @@ const sidebarItems: SidebarItem[] = [
       { label: 'Booking Appointment', link: '/admin/bookingappoinment' },
     ],
   },
+  
   { label: 'Profile Admin', link: '/admin/profile', icon: <User size={20} /> },
 ];
 
