@@ -338,7 +338,7 @@ export default function ProductDetails() {
 
       {/* Product Section */}
       <div className="container mx-auto px-4 py-8 md:py-12">
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white rounded-lg overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 p-4 md:p-6">
             {/* Product Images */}
             <div className="space-y-4">
@@ -421,7 +421,7 @@ export default function ProductDetails() {
                   <p className="text-lg text-gray-500 line-through">Rp{product.basePrice.toLocaleString()}</p>
                 )}
               </div>
-              
+
               {/* Variant Selection */}
               {hasVariants && (
                 <div className="space-y-4 pt-2">
@@ -430,23 +430,53 @@ export default function ProductDetails() {
                     <div>
                       <h3 className="text-sm font-medium text-gray-900 mb-2">Color</h3>
                       <div className="flex flex-wrap gap-2">
-                        {Array.from(new Set(product.variants?.map(v => v.color))).map(color => (
-                          <button
-                            key={color}
-                            onClick={() => {
-                              const variant = product.variants?.find(v => v.color === color && 
-                                (!selectedVariant?.size || v.size === selectedVariant.size));
-                              if (variant) handleVariantSelect(variant);
-                            }}
-                            className={`px-3 py-1 border rounded-md text-sm ${
-                              selectedVariant?.color === color 
-                                ? 'border-blue-500 bg-blue-50 text-blue-700' 
-                                : 'border-gray-300 hover:bg-gray-50'
-                            }`}
-                          >
-                            {color}
-                          </button>
-                        ))}
+                        {Array.from(new Set(product.variants?.map(v => v.color))).map(color => { 
+                          const colorVariants = product.variants?.filter(v => v.color === color);
+                          const hasStock = colorVariants?.some(v => v.stock > 0);
+                          
+                          return (
+                            <button
+                              key={color}
+                              onClick={() => {
+                                // Find the best variant for this color
+                                let variant;
+                                
+                                // If we have a selected size, try to find a variant with same size
+                                if (selectedVariant?.size) {
+                                  variant = product.variants?.find(v => 
+                                    v.color === color && v.size === selectedVariant.size
+                                  );
+                                }
+                                
+                                // If no variant found with same size, get the first available variant for this color
+                                if (!variant) {
+                                  variant = product.variants?.find(v => 
+                                    v.color === color && v.stock > 0
+                                  );
+                                }
+                                
+                                // If still no variant, get any variant for this color
+                                if (!variant) {
+                                  variant = product.variants?.find(v => v.color === color);
+                                }
+                                
+                                if (variant) {
+                                  handleVariantSelect(variant);
+                                }
+                              }}
+                              disabled={!hasStock}
+                              className={`px-3 py-1 border rounded-md text-sm transition-colors ${
+                                selectedVariant?.color === color 
+                                  ? 'border-[#FFC30C] bg-[#FFC30C] text-white' 
+                                  : hasStock
+                                  ? 'border-[#FFC30C] hover:bg-[#FFC30C]/10 text-yellow-700'
+                                  : 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                              }`}
+                            >
+                              {color}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -456,31 +486,55 @@ export default function ProductDetails() {
                     <div>
                       <h3 className="text-sm font-medium text-gray-900 mb-2">Size</h3>
                       <div className="flex flex-wrap gap-2">
-                        {Array.from(new Set(product.variants.map(v => v.size))).map(size => (
-                          <button
-                            key={size}
-                            onClick={() => {
-                              const variant = product.variants?.find(v => v.size === size && 
-                                (!selectedVariant?.color || v.color === selectedVariant.color));
-                              if (variant) handleVariantSelect(variant);
-                            }}
-                            className={`px-3 py-1 border rounded-md text-sm ${
-                              selectedVariant?.size === size 
-                                ? 'border-blue-500 bg-blue-50 text-blue-700' 
-                                : 'border-gray-300 hover:bg-gray-50'
-                            }`}
-                          >
-                            {size}
-                          </button>
-                        ))}
+                        {Array.from(new Set(product.variants.map(v => v.size))).map(size => {
+                          // Check if this size has any available variants
+                          const sizeVariants = product.variants?.filter(v => v.size === size);
+                          const hasStock = sizeVariants?.some(v => v.stock > 0);
+                          
+                          return (
+                            <button
+                              key={size}
+                              onClick={() => {
+                                // Find the best variant for this size
+                                let variant;
+                                
+                                // If we have a selected color, try to find a variant with same color
+                                if (selectedVariant?.color) {
+                                  variant = product.variants?.find(v => 
+                                    v.size === size && v.color === selectedVariant.color
+                                  );
+                                }
+                                
+                                // If no variant found with same color, get the first available variant for this size
+                                if (!variant) {
+                                  variant = product.variants?.find(v => 
+                                    v.size === size && v.stock > 0
+                                  );
+                                }
+                                
+                                // If still no variant, get any variant for this size
+                                if (!variant) {
+                                  variant = product.variants?.find(v => v.size === size);
+                                }
+                                
+                                if (variant) {
+                                  handleVariantSelect(variant);
+                                }
+                              }}
+                              disabled={!hasStock}
+                              className={`px-3 py-1 border rounded-md text-sm transition-colors ${
+                                selectedVariant?.size === size 
+                                  ? 'border-[#FFC30C] bg-[#FFC30C] text-white' 
+                                  : hasStock
+                                  ? 'border-[#FFC30C] hover:bg-[#FFC30C]/10 text-yellow-700'
+                                  : 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                              }`}
+                            >
+                              {size}
+                            </button>
+                          );
+                        })}
                       </div>
-                    </div>
-                  )}
-                  
-                  {/* Variant Stock */}
-                  {selectedVariant && (
-                    <div className="text-sm text-gray-500">
-                      Stock for this variant: {selectedVariant.stock}
                     </div>
                   )}
                 </div>
@@ -522,19 +576,19 @@ export default function ProductDetails() {
               {/* Add to Cart Button */}
               <button
                 onClick={handleAddToCart}
-                disabled={isAddingToCart || !isAvailable || !user}
+                disabled={isAddingToCart || !isAvailable }
                 className={`w-full md:w-auto px-6 py-3 bg-[#FFC30C] text-white rounded-full hover:bg-yellow-500 transition-colors duration-200 ${
-                  isAddingToCart || !isAvailable || !user ? 'opacity-70 cursor-not-allowed' : ''
+                  isAddingToCart || !isAvailable ? 'opacity-70 cursor-not-allowed' : ''
                 }`}
               >
                 {isAddingToCart ? (
                   'ADDING...'
                 ) : !isAvailable ? (
                   'OUT OF STOCK'
-                ) : user ? (
-                  'ADD TO CART'
-                ) : (
+                ) : !user ? (
                   'LOGIN TO ADD TO CART'
+                ) : (
+                  'ADD TO CART'
                 )}
               </button>
 
@@ -550,34 +604,6 @@ export default function ProductDetails() {
           {/* Product Details and Reviews */}
           <div className="border-t border-gray-200 p-4 md:p-6">
             <div className="max-w-3xl mx-auto space-y-8">
-              {/* Details Section */}
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-4">PRODUCT DETAILS</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">General Information</h3>
-                    <ul className="space-y-2 text-gray-700">
-                      <li><span className="font-medium">Category:</span> {product.category?.name || product.categoryName || 'N/A'}</li>
-                      <li><span className="font-medium">Base Price:</span> Rp{product.basePrice.toLocaleString()}</li>
-                      <li><span className="font-medium">Featured:</span> {product.featured ? 'Yes' : 'No'}</li>
-                      {hasVariants && (
-                        <li><span className="font-medium">Variants:</span> {product.variants?.length} options available</li>
-                      )}
-                    </ul>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">Availability</h3>
-                    <ul className="space-y-2 text-gray-700">
-                      <li><span className="font-medium">Status:</span> {isAvailable ? 'In Stock' : 'Out of Stock'}</li>
-                      <li><span className="font-medium">Total Stock:</span> {product.stock}</li>
-                      <li><span className="font-medium">Available for Sale:</span> {product.available ? 'Yes' : 'No'}</li>
-                      {hasVariants && (
-                        <li><span className="font-medium">Variant Stock:</span> Varies by selection</li>
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              </div>
               
               {/* Reviews Section */}
               <div>
