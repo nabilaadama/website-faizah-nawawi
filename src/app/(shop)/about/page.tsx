@@ -5,7 +5,7 @@ import Image from 'next/image'
 
 export default function About() {
   return (
-    <main className="bg-white font-sans">
+    <main className="bg-white">
       <Header />
 
       {/* Hero Section */}
