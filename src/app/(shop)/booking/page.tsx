@@ -14,8 +14,8 @@ export interface Booking {
   email: string;
   whatsapp: string;
   appointmentDate: string;
-  message?: string;
-  status: "pending" | "confirmed" | "cancelled";
+  notes?: string;
+  status: "pending" | "confirmed" | "completed" | "cancelled";
   createdAt?: string;
   updatedAt?: string;
 }
@@ -26,7 +26,7 @@ export default function BookingPage() {
     email: '',
     whatsapp: '',
     appointmentDate: '',
-    message: ''
+    notes: ''
   });
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,20 +78,18 @@ export default function BookingPage() {
       await addDoc(collection(db, 'bookings'), bookingData);
       setSubmitSuccess(true);
       
-      // Reset form
       setFormData({
         name: '',
         email: '',
         whatsapp: '',
         appointmentDate: '',
-        message: ''
+        notes: ''
       });
       setSelectedDate(null);
 
-      // Hide success message after 5 seconds
       setTimeout(() => {
         setSubmitSuccess(false);
-      }, 5000);
+      }, 8000);
     } catch (error) {
       console.error('Error adding booking: ', error);
       setSubmitError('Failed to submit booking. Please try again.');
@@ -119,7 +117,7 @@ export default function BookingPage() {
             </p>
           </div>
 
-          <div className="bg-white shadow rounded-lg p-6 sm:p-8">
+          <div className="bg-white shadow-[0_0_10px_0_rgba(0,0,0,0.12)] rounded-lg p-6 sm:p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               {submitSuccess && (
                 <div className="rounded-md bg-green-50 p-4 mb-4">
@@ -154,8 +152,8 @@ export default function BookingPage() {
               )}
 
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Nama <span className="text-red-500">*</span>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  Name <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1">
                   <input
@@ -165,13 +163,13 @@ export default function BookingPage() {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className="py-3 px-4 block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md"
+                    className="py-3 px-4 block w-full shadow-[0_0_3px_0_rgba(0,0,0,0.12)] focus:ring-yellow-500 focus:border-yellow-500 border-gray-300 rounded-md"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   Email <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1">
@@ -182,14 +180,14 @@ export default function BookingPage() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="py-3 px-4 block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md"
+                    className="py-3 px-4 block w-full shadow-[0_0_3px_0_rgba(0,0,0,0.12)] focus:ring-yellow-500 focus:border-yellow-500 border-gray-300 rounded-md"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700">
-                  Nomor WA <span className="text-red-500">*</span>
+                <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-2">
+                  Whatsapp Number <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1">
                   <input
@@ -199,14 +197,14 @@ export default function BookingPage() {
                     required
                     value={formData.whatsapp}
                     onChange={handleChange}
-                    className="py-3 px-4 block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md"
+                    className="py-3 px-4 block w-full shadow-[0_0_3px_0_rgba(0,0,0,0.12)] focus:ring-yellow-500 focus:border-yellow-500 border-gray-300 rounded-md"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="appointmentDate" className="block text-sm font-medium text-gray-700">
-                  Tanggal dan Waktu Janji <span className="text-red-500">*</span>
+                <label htmlFor="appointmentDate" className="block text-sm font-medium text-gray-700 mb-2">
+                  Date & Time Plan <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1">
                   <DatePicker
@@ -218,7 +216,7 @@ export default function BookingPage() {
                     timeIntervals={30}
                     dateFormat="MMMM d, yyyy h:mm aa"
                     minDate={new Date()}
-                    className="py-3 px-4 block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md"
+                    className="py-3 px-4 block w-full shadow-[0_0_3px_0_rgba(0,0,0,0.12)] focus:ring-yellow-500 focus:border-yellow-500 border-gray-300 rounded-md"
                     placeholderText="Select date and time"
                     required
                   />
@@ -226,18 +224,18 @@ export default function BookingPage() {
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700">
-                  Pesan <span className="text-red-500">*</span>
+                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+                  Notes <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1">
                   <textarea
-                    id="message"
-                    name="message"
+                    id="notes"
+                    name="notes"
                     rows={4}
                     required
-                    value={formData.message}
+                    value={formData.notes}
                     onChange={handleChange}
-                    className="py-3 px-4 block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md"
+                    className="py-3 px-4 block w-full shadow-[0_0_3px_0_rgba(0,0,0,0.12)] focus:ring-yellow-500 focus:border-yellow-500 border-gray-300 rounded-md"
                   />
                 </div>
               </div>
