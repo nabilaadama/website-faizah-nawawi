@@ -2,162 +2,160 @@ import { User } from "@/core/entities/user";
 import { UserRepository } from "@/core/interfaces/repositories/user-repository";
 import { db } from "@/lib/firebase/firebase-config";
 import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  serverTimestamp,
-  Timestamp,
+  collection, 
+  doc, 
+  getDocs, 
+  getDoc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  orderBy,
+  Timestamp
 } from "firebase/firestore";
 
 export class FirebaseUserRepository implements UserRepository {
-  private collection = "users";
+  private collectionName = "users";
 
-  async getById(id: string): Promise<User | null> {
-    try {
-      const docRef = doc(db, this.collection, id);
-      const docSnap = await getDoc(docRef);
+  private convertTimestamp(timestamp: any): Date {
+    if (!timestamp) return new Date();
 
-      if (!docSnap.exists()) {
-        return null;
-      }
+    // If it's already a Date object
+    if (timestamp instanceof Date) return timestamp;
 
-      const data = docSnap.data();
-      return this.mapUserData(id, data);
-    } catch (error) {
-      console.error("Error getting user by ID:", error);
-      throw new Error("Failed to get user by ID");
+    // If it's a Firebase Timestamp
+    if (timestamp && typeof timestamp.toDate === "function") {
+      return timestamp.toDate();
     }
+
+    // If it's a string, try to parse it
+    if (typeof timestamp === "string") {
+      return new Date(timestamp);
+    }
+
+    // If it's a number (milliseconds)
+    if (typeof timestamp === "number") {
+      return new Date(timestamp);
+    }
+
+    // Fallback to current date
+    return new Date();
   }
 
-  async getByEmail(email: string): Promise<User | null> {
+  async getUsers(): Promise<User[]> {
     try {
       const q = query(
-        collection(db, this.collection),
-        where("email", "==", email)
+        collection(db, this.collectionName),
+        orderBy("createdAt", "desc")
       );
       const querySnapshot = await getDocs(q);
 
-      if (querySnapshot.empty) {
-        return null;
+      return querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          email: data.email || "",
+          name: data.name || "",
+          phoneNumber: data.phoneNumber || null,
+          role: data.role || "customer",
+          createdAt: this.convertTimestamp(data.createdAt),
+          updatedAt: this.convertTimestamp(data.updatedAt),
+        } as User;
+      });
+    } catch (error) {
+      console.error("Error getting users:", error);
+      throw new Error("Failed to fetch users");
+    }
+  }
+
+  async getUserById(id: string): Promise<User | null> {
+    try {
+      const docRef = doc(db, this.collectionName, id);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          email: data.email || "",
+          name: data.name || "",
+          phoneNumber: data.phoneNumber || null,
+          role: data.role || "customer",
+          createdAt: this.convertTimestamp(data.createdAt),
+          updatedAt: this.convertTimestamp(data.updatedAt),
+        } as User;
       }
 
-      const doc = querySnapshot.docs[0];
-      return this.mapUserData(doc.id, doc.data());
+      return null;
     } catch (error) {
-      console.error("Error getting user by email:", error);
-      throw new Error("Failed to get user by email");
+      console.error("Error getting user:", error);
+      throw new Error("Failed to fetch user");
     }
   }
 
-  async getAll(): Promise<User[]> {
-    try {
-      const querySnapshot = await getDocs(collection(db, this.collection));
-      return querySnapshot.docs.map((doc) =>
-        this.mapUserData(doc.id, doc.data())
-      );
-    } catch (error) {
-      console.error("Error getting all users:", error);
-      throw new Error("Failed to get all users");
-    }
-  }
-
-  async create(
+  async createUser(
     userData: Omit<User, "id" | "createdAt" | "updatedAt">
   ): Promise<User> {
     try {
-      const newUser = {
+      const now = Timestamp.now();
+      const docRef = await addDoc(collection(db, this.collectionName), {
         ...userData,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      const newUser: User = {
+        id: docRef.id,
+        ...userData,
+        createdAt: now.toDate(),
+        updatedAt: now.toDate(),
       };
 
-      const docRef = await addDoc(collection(db, this.collection), newUser);
-
-      // Get the newly created document
-      const docSnap = await getDoc(docRef);
-      if (!docSnap.exists()) {
-        throw new Error("Failed to create user");
-      }
-
-      return this.mapUserData(docRef.id, docSnap.data());
+      return newUser;
     } catch (error) {
       console.error("Error creating user:", error);
       throw new Error("Failed to create user");
     }
   }
 
-  async update(id: string, userData: Partial<User>): Promise<User> {
+  async updateUser(id: string, userData: Partial<User>): Promise<User> {
     try {
-      const docRef = doc(db, this.collection, id);
-
-      // Get the current data first
-      const docSnap = await getDoc(docRef);
-      if (!docSnap.exists()) {
-        throw new Error("User not found");
-      }
-
-      // Prepare update data
+      const docRef = doc(db, this.collectionName, id);
       const updateData = {
         ...userData,
-        updatedAt: serverTimestamp(),
+        updatedAt: Timestamp.now(),
       };
 
-      // Remove fields that should not be updated
-      delete updateData.id;
-      delete updateData.createdAt;
-
-      // Update the document
       await updateDoc(docRef, updateData);
 
-      // Get the updated document
-      const updatedDocSnap = await getDoc(docRef);
-      if (!updatedDocSnap.exists()) {
-        throw new Error("Failed to get updated user");
+      const updatedDoc = await getDoc(docRef);
+      const data = updatedDoc.data();
+
+      if (!data) {
+        throw new Error("User not found after update");
       }
 
-      return this.mapUserData(id, updatedDocSnap.data());
+      return {
+        id: updatedDoc.id,
+        email: data.email || "",
+        name: data.name || "",
+        phoneNumber: data.phoneNumber || null,
+        role: data.role || "customer",
+        createdAt: this.convertTimestamp(data.createdAt),
+        updatedAt: this.convertTimestamp(data.updatedAt),
+      } as User;
     } catch (error) {
       console.error("Error updating user:", error);
       throw new Error("Failed to update user");
     }
   }
 
-  async delete(id: string): Promise<boolean> {
+  async deleteUser(id: string): Promise<void> {
     try {
-      const docRef = doc(db, this.collection, id);
-      await deleteDoc(docRef);
-      return true;
+      await deleteDoc(doc(db, this.collectionName, id));
     } catch (error) {
       console.error("Error deleting user:", error);
       throw new Error("Failed to delete user");
     }
-  }
-
-  private mapUserData(id: string, data: any): User {
-    // Convert Firestore Timestamps to JavaScript Date objects
-    const createdAt =
-      data.createdAt instanceof Timestamp
-        ? data.createdAt.toDate()
-        : new Date(data.createdAt);
-    const updatedAt =
-      data.updatedAt instanceof Timestamp
-        ? data.updatedAt.toDate()
-        : new Date(data.updatedAt);
-
-    return {
-      id,
-      email: data.email,
-      name: data.name,
-      phoneNumber: data.phoneNumber || null,
-      role: data.role || "customer",
-      createdAt,
-      updatedAt,
-    };
   }
 }
