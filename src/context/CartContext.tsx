@@ -12,6 +12,8 @@ interface CartItem {
   price: number;
   quantity: number;
   image: string;
+  variantId?: string;
+  variantDetails?: string;
   variant?: {
     color?: string;
     size?: string;
@@ -19,10 +21,12 @@ interface CartItem {
 }
 
 interface CartContextType {
-  cartItems: CartItem[];
+  cart: CartItem[]; 
+  cartItems: CartItem[]; 
   addToCart: (item: Omit<CartItem, 'id' | 'quantity'>) => Promise<void>;
   removeFromCart: (id: string) => Promise<void>;
   updateQuantity: (id: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>; 
   cartTotal: number;
   itemCount: number;
   user: User | null;
@@ -83,6 +87,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setCartItems(prevItems => {
       const existingItem = prevItems.find(
         i => i.productId === item.productId && 
+             i.variantId === item.variantId &&
              JSON.stringify(i.variant) === JSON.stringify(item.variant)
       );
 
@@ -140,23 +145,34 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const clearCart = async () => {
+    if (!user) {
+      throw new Error('You must be logged in to clear your cart');
+    }
+
+    setCartItems([]);
+    await saveCartToFirestore([]);
+  };
+
   const cartTotal = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
+    (total: number, item: CartItem) => total + item.price * item.quantity,
     0
   );
 
   const itemCount = cartItems.reduce(
-    (count, item) => count + item.quantity,
+    (count: number, item: CartItem) => count + item.quantity,
     0
   );
 
   return (
     <CartContext.Provider
       value={{
+        cart: cartItems,
         cartItems,
         addToCart,
         removeFromCart,
         updateQuantity,
+        clearCart,
         cartTotal,
         itemCount,
         user,
