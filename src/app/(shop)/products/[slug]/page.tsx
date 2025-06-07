@@ -7,7 +7,7 @@ import { db } from '@/lib/firebase/firebase-config';
 import { Product, ProductImage, ProductVariant, Category, Review } from '@/core/entities/product';
 import Header from "@/components/header";
 import Footer from "@/components/footer";
-import { Star, Info } from 'lucide-react';
+import { Star, Info, ShoppingCart, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { toast } from 'react-hot-toast';
@@ -30,6 +30,8 @@ export default function ProductDetails() {
   const [quantity, setQuantity] = useState<number>(1);
   const [isAddingToCart, setIsAddingToCart] = useState<boolean>(false);
   const { addToCart, user } = useCart();
+
+  const ADMIN_WHATSAPP = "6281234567890";
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -75,6 +77,8 @@ export default function ProductDetails() {
         setIsLoading(false);
       }
     };
+
+    
 
     const getProductWithDetails = async (docSnap: any): Promise<ProductWithDetails> => {
       const data = docSnap.data();
@@ -285,6 +289,29 @@ export default function ProductDetails() {
     );
   }
 
+  const handleWhatsAppOrder = () => {
+    if (!product) return;
+
+    const price = selectedVariant?.price || product.basePrice;
+    const totalPrice = price * quantity;
+    
+    let message = `Halo, saya ingin memesan produk berikut:\n\n`;
+    message += `*Nama Produk:* ${product.name}\n`;
+    message += `*Harga:* Rp${price.toLocaleString()}\n`;
+    message += `*Jumlah:* ${quantity}\n`;
+    
+    if (selectedVariant) {
+      if (selectedVariant.color) message += `*Warna:* ${selectedVariant.color}\n`;
+      if (selectedVariant.size) message += `*Ukuran:* ${selectedVariant.size}\n`;
+    }
+    
+    message += `*Total:* Rp${totalPrice.toLocaleString()}\n\n`;
+    message += `Terima kasih!`;
+
+    const whatsappUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   const displayPrice = selectedVariant?.price || product.basePrice;
   const displayStock = selectedVariant?.stock || product.stock;
   const hasImages = product.images && product.images.length > 0;
@@ -441,21 +468,18 @@ export default function ProductDetails() {
                                 // Find the best variant for this color
                                 let variant;
                                 
-                                // If we have a selected size, try to find a variant with same size
                                 if (selectedVariant?.size) {
                                   variant = product.variants?.find(v => 
                                     v.color === color && v.size === selectedVariant.size
                                   );
                                 }
                                 
-                                // If no variant found with same size, get the first available variant for this color
                                 if (!variant) {
                                   variant = product.variants?.find(v => 
                                     v.color === color && v.stock > 0
                                   );
                                 }
                                 
-                                // If still no variant, get any variant for this color
                                 if (!variant) {
                                   variant = product.variants?.find(v => v.color === color);
                                 }
@@ -487,7 +511,6 @@ export default function ProductDetails() {
                       <h3 className="text-sm font-medium text-gray-900 mb-2">Size</h3>
                       <div className="flex flex-wrap gap-2">
                         {Array.from(new Set(product.variants.map(v => v.size))).map(size => {
-                          // Check if this size has any available variants
                           const sizeVariants = product.variants?.filter(v => v.size === size);
                           const hasStock = sizeVariants?.some(v => v.stock > 0);
                           
@@ -498,21 +521,18 @@ export default function ProductDetails() {
                                 // Find the best variant for this size
                                 let variant;
                                 
-                                // If we have a selected color, try to find a variant with same color
                                 if (selectedVariant?.color) {
                                   variant = product.variants?.find(v => 
                                     v.size === size && v.color === selectedVariant.color
                                   );
                                 }
                                 
-                                // If no variant found with same color, get the first available variant for this size
                                 if (!variant) {
                                   variant = product.variants?.find(v => 
                                     v.size === size && v.stock > 0
                                   );
                                 }
                                 
-                                // If still no variant, get any variant for this size
                                 if (!variant) {
                                   variant = product.variants?.find(v => v.size === size);
                                 }
@@ -573,31 +593,59 @@ export default function ProductDetails() {
                 <p className="text-gray-700">{product.description}</p>
               </div>
               
-              {/* Add to Cart Button */}
-              <button
-                onClick={handleAddToCart}
-                disabled={isAddingToCart || !isAvailable }
-                className={`w-full md:w-auto px-6 py-3 bg-[#FFC30C] text-white rounded-full hover:bg-yellow-500 transition-colors duration-200 ${
-                  isAddingToCart || !isAvailable ? 'opacity-70 cursor-not-allowed' : ''
-                }`}
-              >
-                {isAddingToCart ? (
-                  'ADDING...'
-                ) : !isAvailable ? (
-                  'OUT OF STOCK'
-                ) : !user ? (
-                  'LOGIN TO ADD TO CART'
-                ) : (
-                  'ADD TO CART'
-                )}
-              </button>
 
-              {!user && (
-                <div className="flex items-center mt-2 text-sm text-gray-500">
-                  <Info className="w-4 h-4 mr-1" />
-                  <span>You need to login to add items to your cart</span>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+
+                  {/* Add to Cart Button */}
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={isAddingToCart || !isAvailable || !user}
+                    className={`
+                      w-full py-3.5 px-3 rounded-full font-medium text-xs transition-all duration-200
+                      flex items-center justify-center gap-1.5
+                      ${isAddingToCart || !isAvailable || !user
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-[#FFC30C] hover:bg-yellow-500 text-white shadow-md hover:shadow-lg'
+                      }
+                    `}
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5" />
+                    <span className="truncate">
+                      {isAddingToCart ? (
+                        'ADDING...'
+                      ) : !isAvailable ? (
+                        'OUT OF STOCK'
+                      ) : !user ? (
+                        'LOGIN TO ADD TO CART'
+                      ) : (
+                        'ADD TO CART'
+                      )}
+                    </span>
+                  </button>
+
+                  {/* WhatsApp Button */}
+                  <button
+                    onClick={handleWhatsAppOrder}
+                    className="
+                      w-full py-3.5 px-5 rounded-full font-medium text-xs
+                      bg-green-500 hover:bg-green-600 text-white
+                      transition-all duration-200 shadow-md hover:shadow-lg
+                      flex items-center justify-center gap-1.5
+                      sm:col-span-2 lg:col-span-1
+                    "
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span className="truncate">BELI LEWAT WHATSAPP</span>
+                  </button>
                 </div>
-              )}
+                {!user && (
+                    <div className="flex items-center mt-2 text-sm text-gray-500">
+                      <Info className="w-4 h-4 mr-1" />
+                      <span>You need to login to add items to your cart</span>
+                    </div>
+                  )}
+              </div>   
             </div>
           </div>
           
