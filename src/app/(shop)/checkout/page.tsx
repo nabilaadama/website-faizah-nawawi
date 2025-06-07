@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { PhoneIcon, MapPinIcon, CreditCardIcon } from "@heroicons/react/24/outline";
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from "@/context/auth-context";
@@ -33,6 +32,7 @@ export default function Checkout() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
   const [useNewAddress, setUseNewAddress] = useState(false);
+  const [shippingConfirmed, setShippingConfirmed] = useState(false);
   
   const [formData, setFormData] = useState<CheckoutFormData>({
     name: '',
@@ -150,14 +150,17 @@ export default function Checkout() {
     return `ORD-${timestamp}-${random}`;
   };
 
-  // Perbaikan untuk handleSubmitOrder function
   const handleSubmitOrder = async () => {
     if (!user?.uid) {
       toast.error('Please login to continue');
       return;
     }
 
-    // Validation
+    if (!shippingConfirmed) {
+      toast.error('Harap konfirmasi ongkir terlebih dahulu');
+      return;
+    }
+
     if (!formData.name.trim() || !formData.phoneNumber.trim()) {
       toast.error('Please fill in contact information');
       return;
@@ -171,7 +174,6 @@ export default function Checkout() {
     setIsSubmitting(true);
 
     try {
-      // Create shipping address - pastikan tidak ada undefined
       const shippingAddress: Address = {
         id: useNewAddress ? '' : selectedAddressId,
         userId: user.uid,
@@ -180,28 +182,26 @@ export default function Checkout() {
         province: formData.province,
         city: formData.city,
         district: formData.district,
-        postalCode: formData.postalCode || '', // Pastikan tidak undefined
+        postalCode: formData.postalCode || '',
         fullAddress: formData.fullAddress,
         isDefault: false,
-        notes: formData.notes || '', // Pastikan tidak undefined
+        notes: formData.notes || '', 
         createdAt: new Date(),
         updatedAt: new Date()
       };
 
-      // Create order items - pastikan tidak ada undefined
       const orderItems: OrderItem[] = cart.map((cartItem: any) => ({
         productId: cartItem.productId,
         productName: cartItem.name,
-        productImage: cartItem.image || '', // Pastikan tidak undefined
-        variantId: cartItem.variantId || '', // Pastikan tidak undefined
-        size: cartItem.variantDetails?.split(', ')[1] || '', // Pastikan tidak undefined
-        color: cartItem.variantDetails?.split(', ')[0] || '', // Pastikan tidak undefined
+        productImage: cartItem.image || '', 
+        variantId: cartItem.variantId || '', 
+        size: cartItem.variantDetails?.split(', ')[1] || '', 
+        color: cartItem.variantDetails?.split(', ')[0] || '', 
         quantity: cartItem.quantity,
         price: cartItem.price,
         subtotal: cartItem.price * cartItem.quantity
       }));
 
-      // Create order - pastikan tidak ada undefined
       const order: Omit<Order, 'id'> = {
         userId: user.uid,
         orderNumber: generateOrderNumber(),
@@ -211,30 +211,24 @@ export default function Checkout() {
         status: 'pending',
         items: orderItems,
         paymentStatus: 'unpaid',
-        // Jangan include paymentDetails jika undefined
-        // paymentDetails: undefined, // Hapus baris ini
         createdAt: new Date(),
         updatedAt: new Date()
       };
 
-      // Save order to Firestore - gunakan object yang bersih
       const orderToSave = {
         ...order,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
 
-      // Log untuk debugging
       console.log('Order to save:', orderToSave);
 
       const orderRef = await addDoc(collection(db, 'orders'), orderToSave);
 
-      // Clear cart
       await clearCart();
 
       toast.success('Order created successfully!');
       
-      // Redirect to payment confirmation with Firestore document ID
       router.push(`/paymentconfirmation/${orderRef.id}`);
     } catch (error) {
       console.error('Error creating order:', error);
@@ -468,13 +462,32 @@ export default function Checkout() {
                   <p>Total</p>
                   <p>Rp{totalAmount.toLocaleString()}</p>
                 </div>
+
+                {/* Shipping Confirmation Checkbox */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-start space-x-3">
+                    <input
+                      type="checkbox"
+                      id="shippingConfirmation"
+                      checked={shippingConfirmed}
+                      onChange={(e) => setShippingConfirmed(e.target.checked)}
+                      className="mt-1 h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="shippingConfirmation" className="text-sm text-gray-700 leading-5">
+                      <span className="font-medium">Saya telah mengecek ongkir dari admin atau menerima berapapun ongkirnya</span>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Centang kotak ini untuk konfirmasi bahwa Anda telah menanyakan ongkir kepada admin atau siap menerima biaya ongkir yang akan dikenakan.
+                      </p>
+                    </label>
+                  </div>
+                </div>
               </div>
 
               <button
                 onClick={handleSubmitOrder}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !shippingConfirmed}
                 className={`w-full h-[50px] bg-yellow-400 hover:bg-yellow-500 transition text-center py-3 rounded-2xl shadow-md text-white font-semibold ${
-                  isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+                  (isSubmitting || !shippingConfirmed) ? 'opacity-70 cursor-not-allowed' : ''
                 }`}
               >
                 {isSubmitting ? 'Memproses...' : 'Buat Pesanan'}
