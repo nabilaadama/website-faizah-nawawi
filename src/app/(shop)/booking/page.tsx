@@ -113,7 +113,7 @@ export default function BookingPage() {
               Personalized Fitting for Your Perfect Look
             </h1>
             <p className="mt-4 text-lg text-gray-600">
-              Dapatkan pengalaman eksklusif dengan sesi konsultasi personal bersama Faizah Nawawi untuk menciptakan busana impian Anda.
+              Get an exclusive experience with a personal consultation session with Faizah Nawawi to create your dream outfit.
             </p>
           </div>
 
