@@ -61,7 +61,7 @@ export default function Header() {
 
       <nav className="hidden md:flex items-center space-x-8">
         <Link href="/" className={getNavLinkClass("/")}>
-          Beranda
+          Home
         </Link>
         <Link href="/about" className={getNavLinkClass("/about")}>
           About Us
@@ -93,10 +93,10 @@ export default function Header() {
         </Link>
       ) : (
         <Link 
-          href="/register" 
-          className={getNavLinkClass("/register")}
+          href="/login" 
+          className={getNavLinkClass("/login")}
         >
-          Sign Up
+          Log in
         </Link>
       )}
     </div>
