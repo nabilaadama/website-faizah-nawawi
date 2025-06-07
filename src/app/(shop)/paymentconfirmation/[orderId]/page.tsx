@@ -69,7 +69,6 @@ export default function PaymentConfirmation() {
         
         setOrder(orderData);
         
-        // If payment is already confirmed, redirect
         if (orderData.paymentStatus === 'paid') {
           toast.success('Pembayaran sudah dikonfirmasi');
           router.push('/orders');
@@ -121,14 +120,12 @@ export default function PaymentConfirmation() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
       const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
       if (!validTypes.includes(file.type)) {
         toast.error('File harus berupa gambar (JPG, PNG, WebP)');
         return;
       }
       
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast.error('Ukuran file maksimal 5MB');
         return;
@@ -147,12 +144,10 @@ export default function PaymentConfirmation() {
     const fileName = `${orderId}-${timestamp}.${fileExtension}`;
     
     try {
-      // Create FormData to send file to API
       const formData = new FormData();
       formData.append('file', file);
       formData.append('fileName', fileName);
       
-      // Call API to save file to public/paymentProof
       const response = await fetch('/api/upload-payment-proof', {
         method: 'POST',
         body: formData,
@@ -164,7 +159,6 @@ export default function PaymentConfirmation() {
       
       const result = await response.json();
       
-      // Return the public URL path
       return `/paymentProof/${fileName}`;
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -177,95 +171,44 @@ export default function PaymentConfirmation() {
     try {
       const adminPhone = '6285225988870'; 
       
-      // Format tanggal pembayaran
-      const paymentDate = paymentDetails.paymentDate || new Date();
-      const formattedDate = paymentDate.toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: '2-digit', 
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      
-      // Format detail pesanan
-      const itemsDetail = order.items.map(item => 
-        `${item.productName} : *${item.productName}*
-  qty : *${item.quantity}*
-  size : *${item.size}*`
-      ).join('\n\n');
-    
-    const message = `*FAKTUR ELEKTRONIK* *TRANSAKSI REGULER*
-  Faizah Nawawi Boutique
+      const message = `Halo admin, saya telah membuat pesanan dengan nomor pesanan ${order.orderNumber}`;
 
-  Order ID : 
-  *${order.orderNumber}*
-  Pelanggan Yth : 
-  *${order.shippingAddress?.recipientName || paymentDetails.senderName}*
-  Terima : *${formattedDate}*
-
-  ======================
-
-  Detail pesanan:
-  ${itemsDetail}
-
-  ======================
-
-  Pembayaran:
-  Metode : *${paymentDetails.method}*
-  Pengirim : *${paymentDetails.senderName}*
-  Bank : *${paymentDetails.senderBank}*
-  Bukti Transfer : *${paymentDetails.paymentProofUrl}*
-  Total : *Rp${order.totalAmount.toLocaleString()}*
-  Status: *Menunggu Verifikasi*
-
-  ======================
-
-  Terima kasih`;
-
-      // Encode dengan lebih aman
       const encodedMessage = encodeURIComponent(message);
       
-      // Buat URL WhatsApp
       const whatsappUrl = `https://wa.me/${adminPhone}?text=${encodedMessage}`;
       
-      console.log('WhatsApp URL:', whatsappUrl);
-      console.log('URL Length:', whatsappUrl.length);
+      console.log('WhatsApp URL to admin:', whatsappUrl);
       
-      // Fungsi untuk membuka WhatsApp dengan delay
       const openWhatsApp = () => {
-        // Coba buka di tab baru
         const newWindow = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
         
         if (!newWindow) {
-          // Jika popup diblok, coba dengan location
           window.location.href = whatsappUrl;
         }
       };
       
-      // Buka WhatsApp setelah delay singkat
       setTimeout(openWhatsApp, 500);
       
-      // Tampilkan pesan sukses
-      toast.success('Mengarahkan ke WhatsApp...');
+      toast.success('Mengarahkan ke WhatsApp untuk konfirmasi ke admin...');
       
     } catch (error) {
       console.error('Error opening WhatsApp:', error);
-      
-      // Fallback 1: Buka WhatsApp tanpa pesan
+
       try {
-        const basicUrl = `https://wa.me/6285225988870`;
+        const adminPhone = '6285225988870';
+        const basicUrl = `https://wa.me/${adminPhone}`;
         window.open(basicUrl, '_blank', 'noopener,noreferrer');
         
-        toast('WhatsApp terbuka. Silakan kirim pesan manual tentang pembayaran.');
+        toast('WhatsApp terbuka. Silakan kirim pesan manual ke admin.');
       } catch (fallbackError) {
-        // Fallback 2: Copy pesan dan beri instruksi
-        const fallbackMessage = `Order ${order.orderNumber} - Pembayaran Rp${order.totalAmount.toLocaleString()} dari ${paymentDetails.senderName}`;
+
+        const fallbackMessage = `Halo admin, saya telah membuat pesanan dengan nomor pesanan ${order.orderNumber}`;
         
         try {
           navigator.clipboard.writeText(fallbackMessage);
-          toast.success('Pesan disalin! Buka WhatsApp manual dan paste pesan ini ke 085225988870');
+          toast.success('Pesan disalin! Buka WhatsApp manual dan kirim ke admin.');
         } catch (clipError) {
-          toast.error('Silakan hubungi admin di 085225988870 secara manual.');
+          toast.error('Silakan hubungi admin secara manual.');
         }
       }
     }
@@ -500,7 +443,6 @@ export default function PaymentConfirmation() {
                 alt={activeBankAccount.bankName} 
                 className="h-6" 
                 onError={(e) => {
-                  // Fallback jika gambar tidak ditemukan
                   e.currentTarget.style.display = 'none';
                 }}
               />
