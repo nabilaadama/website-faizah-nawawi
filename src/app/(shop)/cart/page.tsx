@@ -1,11 +1,10 @@
-// app/cart/page.tsx
 "use client";
 
 import { useCart } from '@/context/CartContext';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import Link from 'next/link';
-import { Minus, Plus, Trash2 } from 'lucide-react';
+import { Minus, Plus, Trash2, Info } from 'lucide-react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase/firebase-config';
@@ -182,6 +181,14 @@ export default function CartPage() {
                     <span>Total</span>
                     <span>Rp{cartTotal.toLocaleString()}</span>
                   </div>
+                </div>
+
+                <div className="flex items-center mt-2 text-sm text-gray-500">
+                  <Info className="w-4 h-4 mr-1" />
+                  <span>
+                    Contact  
+                    <a href="https://wa.me/6285225988870" className="text-blue-600 hover:underline"> admin </a>        
+                      to check shipping costs</span>
                 </div>
                 
                 <Link
