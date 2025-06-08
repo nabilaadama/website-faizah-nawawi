@@ -67,7 +67,7 @@ export default function Signup() {
 
       <div className="w-1/2 flex items-center justify-center bg-gradient-to-b from-gray-100 to-white">
         <div className="w-full max-w-md px-8 py-12">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">Buat Akun</h2>
+          <h2 className="text-2xl font-bold mb-6 text-gray-800">Create Account</h2>
 
           {error && (
             <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
@@ -78,12 +78,12 @@ export default function Signup() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-bold mb-1 text-gray-800">
-                Nama Lengkap
+                Full Name
               </label>
               <input
                 name="namalengkap"
                 type="text"
-                placeholder="Masukkan Nama Lengkap"
+                placeholder="Enter Your Full Name"
                 className="w-full h-[45px] text-sm border-2 border-gray-300 rounded-[8px] px-4 py-2 focus:outline-none focus:ring focus:ring-yellow-300 text-black"
                 required
               />
@@ -95,7 +95,7 @@ export default function Signup() {
               <input
                 name="email"
                 type="email"
-                placeholder="Masukkan Email"
+                placeholder="Enter Your Email"
                 className="w-full h-[45px] text-sm border-2 border-gray-300 rounded-[8px] px-4 py-2 focus:outline-none focus:ring focus:ring-yellow-300 text-black"
                 required
               />
@@ -107,19 +107,19 @@ export default function Signup() {
               <input
                 name="password"
                 type="password"
-                placeholder="Masukkan Password"
+                placeholder="Enter Your Password"
                 className="w-full h-[45px] text-sm border-2 border-gray-300 rounded-[8px] px-4 py-2 focus:outline-none focus:ring focus:ring-yellow-300 text-black"
                 required
               />
             </div>
             <div>
               <label className="block text-sm font-bold mb-1 text-gray-800">
-                Konfirmasi Password
+                Confirm Password
               </label>
               <input
                 name="confirmPassword"
                 type="password"
-                placeholder="Konfirmasi Password"
+                placeholder="Confirm Your Password"
                 className="w-full h-[45px] text-sm border-2 border-gray-300 rounded-[8px] px-4 py-2 focus:outline-none focus:ring focus:ring-yellow-300 text-black"
                 required
               />
@@ -129,16 +129,16 @@ export default function Signup() {
               disabled={loading}
               className="w-full h-[45px] bg-yellow-400 text-white py-2 rounded-[18px] font-bold shadow-md hover:bg-yellow-500 transition disabled:bg-yellow-300 disabled:cursor-not-allowed"
             >
-              {loading ? "Memproses..." : "Sign Up"}
+              {loading ? "Memproses..." : "Register"}
             </button>
           </form>
           <p className="mt-4 text-sm text-center text-gray-800">
-            Sudah punya akun?{" "}
+            Already have an account?{" "}
             <span
               onClick={() => router.push("/login")}
               className="font-bold text-black cursor-pointer hover:underline"
             >
-              Sign In
+              Login
             </span>
           </p>
         </div>
