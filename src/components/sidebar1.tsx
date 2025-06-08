@@ -38,7 +38,7 @@ export default function Sidebar() {
                 isActive('/profile') ? 'bg-yellow-400 text-black' : 'hover:bg-gray-100 text-black'
               }`}
             >
-              <span>Informasi Personal</span>
+              <span>Personal Information</span>
               <span>&gt;</span>
             </div>
           </Link>
