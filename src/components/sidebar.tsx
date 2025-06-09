@@ -13,6 +13,10 @@ import {
   ChevronDown,
   ChevronUp,
   LogOut,
+  ShoppingCart,
+  CalendarCheck,
+  ListOrdered,
+  Boxes,
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -22,27 +26,27 @@ interface SidebarItem {
   children?: SidebarItem[];
 }
 
+const iconSize = 20;
+
 const sidebarItems: SidebarItem[] = [
-  { label: 'Dashboard', link: '/admin', icon: <Home size={20} /> },
+  { label: 'Dashboard', link: '/admin', icon: <Home size={iconSize} /> },
   {
-    label: 'Manage Data',
-    icon: <Users size={20} />,
+    label: 'Manage data',
     children: [
-      { label: 'User', link: '/admin/users' },
-      { label: 'Product', link: '/admin/products' },
-      { label: 'Category ', link: '/admin/products/new' },
+      { label: 'User', link: '/admin/users', icon: <User size={iconSize} /> },
+      { label: 'Product', link: '/admin/products', icon: <Boxes size={iconSize} /> },
+      { label: 'Category', link: '/admin/products/category', icon: <ListOrdered size={iconSize} /> },
+      { label: 'Bank Account', link: '/admin/bank-account', icon: <Package size={iconSize} /> },
     ],
   },
   {
     label: 'Manage Transaction',
-    icon: <Package size={20} />,
     children: [
-      { label: 'Order', link: '/admin/order' },
-      { label: 'Booking Appointment', link: '/admin/bookingappoinment' },
+      { label: 'Order', link: '/admin/order', icon: <ShoppingCart size={iconSize} /> },
+      { label: 'Booking Appointment', link: '/admin/bookingappoinment', icon: <CalendarCheck size={iconSize} /> },
     ],
   },
-  
-  { label: 'Profile Admin', link: '/admin/profile', icon: <User size={20} /> },
+  { label: 'Profile Admin', link: '/admin/profile', icon: <User size={21} /> },
 ];
 
 const Sidebar: React.FC = () => {
@@ -61,8 +65,6 @@ const Sidebar: React.FC = () => {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      // Replace with your actual logout API call
-      // await fetch('/api/admin/logout', { method: 'POST' });
       router.push('/admin/login');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -74,77 +76,78 @@ const Sidebar: React.FC = () => {
 
   return (
     <>
-      {/* Sidebar */}
-      <div className={`h-full ${ isOpen ? 'w-72' : 'w-20'} bg-[#A67C52] text-white flex flex-col justify-between transition-all duration-300`}>
+      <div className={`h-full ${isOpen ? 'w-80' : 'w-20'} bg-[#A67C52] text-white flex flex-col justify-between transition-all duration-300`}>
         {/* Header */}
         <div>
-          <div className="p-4 border-gray-700 flex justify-between items-center">
+          <div className="p-4 flex items-center justify-between">
             {isOpen && (
-              <img 
-                src="/assets/logosamping.png"
-                alt="Admin Panel Logo" 
-                className="h-12 w-auto mx-auto" // tambahkan mx-auto
-              />
+              <img src="/assets/logosamping.png" alt="Admin Panel Logo" className="h-12 w-auto mx-auto" />
             )}
-            <button onClick={toggleSidebar} className="text-white">
-              {isOpen ? <ArrowLeft size={24} /> : <Menu size={24} />}
+            <button
+              onClick={toggleSidebar}
+              className={`text-white ml-2 ${!isOpen ? 'ml-auto mr-3' : ''}`}
+            >
+              {isOpen ? <ArrowLeft size={iconSize} /> : <Menu size={iconSize} />}
             </button>
+
           </div>
 
           {/* Navigation */}
           <nav className="p-4">
-            <ul className="space-y-2">
+            <ul>
               {sidebarItems.map((item, index) => {
                 const isDropdown = !!item.children;
                 const isActive = pathname === item.link;
                 const isDropdownOpen = openDropdowns[item.label];
 
                 return (
-                  <li key={index}>
+                  <React.Fragment key={index}>
                     {item.link ? (
-                      <Link
-                        href={item.link}
-                        className={`flex items-center gap-3 py-2 px-4 rounded transition-colors ${
-                          isActive ? 'bg-[#5E4734] font-semibold' : 'hover:bg-[#8C6A4F]'
-                        }`}
-                      >
-                        {item.icon}
-                        {isOpen && <span>{item.label}</span>}
-                      </Link>
-                    ) : (
-                      <button
-                        onClick={() => toggleDropdown(item.label)}
-                        className="w-full flex items-center justify-between py-2 px-4 rounded hover:bg-[#8C6A4F] transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          {item.icon}
+                      <li className={`mb-3 ${index !== 0 ? 'mt-6' : ''}`}>
+                        <Link
+                          href={item.link}
+                          className={`flex items-center gap-3 py-2 px-4 rounded transition-colors ${
+                            isActive ? 'bg-[#8C6A4F] font-semibold' : 'hover:bg-[#A07F62]'
+                          }`}
+                        >
+                          <div className="min-w-[20px]">{item.icon}</div>
                           {isOpen && <span>{item.label}</span>}
-                        </div>
-                        {isOpen && (isDropdownOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />)}
-                      </button>
-                    )}
+                        </Link>
+                      </li>
+                    ) : (
+                      <>
+                        <li className={`mb-3 ${index !== 0 ? 'mt-6' : ''}`}>
+                          <button
+                            onClick={() => toggleDropdown(item.label)}
+                            className="w-full flex items-center justify-between py-2 px-4 rounded hover:bg-[#A07F62] transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              {item.icon && <div className="min-w-[20px]">{item.icon}</div>}
+                              {isOpen && <span>{item.label}</span>}
+                            </div>
+                            {isOpen && (isDropdownOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />)}
+                          </button>
+                        </li>
 
-                    {/* Sub-items */}
-                    {isDropdown && isDropdownOpen && isOpen && (
-                      <ul className="ml-8 mt-1 space-y-1">
-                        {item.children!.map((child, idx) => {
+                        {(isDropdownOpen || !isOpen) && item.children?.map((child, idx) => {
                           const isChildActive = pathname === child.link;
                           return (
-                            <li key={idx}>
+                            <li key={idx} className="mb-3">
                               <Link
                                 href={child.link!}
-                                className={`flex items-center py-1.5 px-3 rounded text-sm ${
-                                  isChildActive ? 'bg-[#5E4734] font-semibold' : 'hover:bg-[#8C6A4F]'
+                                className={`flex items-center gap-3 py-2 px-4 rounded transition-colors ${
+                                  isChildActive ? 'bg-[#8C6A4F] font-semibold' : 'hover:bg-[#A07F62]'
                                 }`}
                               >
-                                <span>{child.label}</span>
+                                <div className="min-w-[20px]">{child.icon}</div>
+                                {isOpen && <span>{child.label}</span>}
                               </Link>
                             </li>
                           );
                         })}
-                      </ul>
+                      </>
                     )}
-                  </li>
+                  </React.Fragment>
                 );
               })}
             </ul>
@@ -152,18 +155,18 @@ const Sidebar: React.FC = () => {
         </div>
 
         {/* Logout Button */}
-        <div className="p-4 border-gray-700">
+        <div className="p-4">
           <button
             onClick={() => setShowLogoutConfirm(true)}
-            className="flex items-center justify-center gap-2 py-2 px-4 rounded hover:bg-[#8C6A4F] transition-colors w-full"
+            className="flex items-center justify-center gap-2 py-2 px-4 rounded hover:bg-[#A07F62] transition-colors w-full"
           >
-            <LogOut size={20} />
+            <LogOut size={22} />
             {isOpen && <span>Logout</span>}
           </button>
         </div>
       </div>
 
-      {/* Logout Confirmation Modal */}
+      {/* Logout Modal */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
           <div className="bg-white p-6 rounded-lg shadow-lg w-[400px]">
