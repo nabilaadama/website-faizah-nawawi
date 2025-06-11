@@ -76,20 +76,31 @@ const Sidebar: React.FC = () => {
 
   return (
     <>
-      <div className={`h-full ${isOpen ? 'w-80' : 'w-20'} bg-[#A67C52] text-white flex flex-col justify-between transition-all duration-300`}>
+      <div
+        className={`h-full ${
+          isOpen ? "w-80" : "w-20"
+        } bg-white text-black flex flex-col justify-between transition-all duration-300`}
+      >
         {/* Header */}
         <div>
           <div className="p-4 flex items-center justify-between">
             {isOpen && (
-              <img src="/assets/logosamping.png" alt="Admin Panel Logo" className="h-12 w-auto mx-auto" />
+              <img
+                src="/assets/logosamping.png"
+                alt="Admin Panel Logo"
+                className="h-12 w-auto mx-auto"
+              />
             )}
             <button
               onClick={toggleSidebar}
-              className={`text-white ml-2 ${!isOpen ? 'ml-auto mr-3' : ''}`}
+              className={`text-black ml-2 ${!isOpen ? "ml-auto mr-3" : ""}`}
             >
-              {isOpen ? <ArrowLeft size={iconSize} /> : <Menu size={iconSize} />}
+              {isOpen ? (
+                <ArrowLeft size={iconSize} />
+              ) : (
+                <Menu size={iconSize} />
+              )}
             </button>
-
           </div>
 
           {/* Navigation */}
@@ -103,11 +114,13 @@ const Sidebar: React.FC = () => {
                 return (
                   <React.Fragment key={index}>
                     {item.link ? (
-                      <li className={`mb-3 ${index !== 0 ? 'mt-6' : ''}`}>
+                      <li className={`mb-3 ${index !== 0 ? "mt-6" : ""}`}>
                         <Link
                           href={item.link}
                           className={`flex items-center gap-3 py-2 px-4 rounded transition-colors ${
-                            isActive ? 'bg-[#8C6A4F] font-semibold' : 'hover:bg-[#A07F62]'
+                            isActive
+                              ? "bg-[#D2B48C]"
+                              : "hover:bg-[#A07F62]"
                           }`}
                         >
                           <div className="min-w-[20px]">{item.icon}</div>
@@ -116,35 +129,47 @@ const Sidebar: React.FC = () => {
                       </li>
                     ) : (
                       <>
-                        <li className={`mb-3 ${index !== 0 ? 'mt-6' : ''}`}>
+                        <li className={`mb-3 ${index !== 0 ? "mt-6" : ""}`}>
                           <button
                             onClick={() => toggleDropdown(item.label)}
                             className="w-full flex items-center justify-between py-2 px-4 rounded hover:bg-[#A07F62] transition-colors"
                           >
                             <div className="flex items-center gap-3">
-                              {item.icon && <div className="min-w-[20px]">{item.icon}</div>}
+                              {item.icon && (
+                                <div className="min-w-[20px]">{item.icon}</div>
+                              )}
                               {isOpen && <span>{item.label}</span>}
                             </div>
-                            {isOpen && (isDropdownOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />)}
+                            {isOpen &&
+                              (isDropdownOpen ? (
+                                <ChevronUp size={18} />
+                              ) : (
+                                <ChevronDown size={18} />
+                              ))}
                           </button>
                         </li>
 
-                        {(isDropdownOpen || !isOpen) && item.children?.map((child, idx) => {
-                          const isChildActive = pathname === child.link;
-                          return (
-                            <li key={idx} className="mb-3">
-                              <Link
-                                href={child.link!}
-                                className={`flex items-center gap-3 py-2 px-4 rounded transition-colors ${
-                                  isChildActive ? 'bg-[#8C6A4F] font-semibold' : 'hover:bg-[#A07F62]'
-                                }`}
-                              >
-                                <div className="min-w-[20px]">{child.icon}</div>
-                                {isOpen && <span>{child.label}</span>}
-                              </Link>
-                            </li>
-                          );
-                        })}
+                        {(isDropdownOpen || !isOpen) &&
+                          item.children?.map((child, idx) => {
+                            const isChildActive = pathname === child.link;
+                            return (
+                              <li key={idx} className="mb-3">
+                                <Link
+                                  href={child.link!}
+                                  className={`flex items-center gap-3 py-2 px-4 rounded transition-colors ${
+                                    isChildActive
+                                      ? "bg-[#A07F62] font-white"
+                                      : "hover:bg-[#A07F62]"
+                                  }`}
+                                >
+                                  <div className="min-w-[20px]">
+                                    {child.icon}
+                                  </div>
+                                  {isOpen && <span>{child.label}</span>}
+                                </Link>
+                              </li>
+                            );
+                          })}
                       </>
                     )}
                   </React.Fragment>
@@ -173,7 +198,9 @@ const Sidebar: React.FC = () => {
             <div className="flex flex-col items-center">
               <LogOut className="h-12 w-12 text-red-600" />
               <h2 className="text-xl font-bold text-black mt-3">Logout</h2>
-              <p className="text-gray-600 mt-1">Apakah Anda yakin ingin keluar?</p>
+              <p className="text-gray-600 mt-1">
+                Apakah Anda yakin ingin keluar?
+              </p>
             </div>
             <div className="flex justify-center gap-4 mt-6">
               <button
@@ -186,19 +213,35 @@ const Sidebar: React.FC = () => {
                 onClick={handleLogout}
                 disabled={isLoggingOut}
                 className={`bg-red-500 text-white py-2 px-6 rounded-md hover:bg-red-600 transition-colors ${
-                  isLoggingOut ? 'opacity-70 cursor-not-allowed' : ''
+                  isLoggingOut ? "opacity-70 cursor-not-allowed" : ""
                 }`}
               >
                 {isLoggingOut ? (
                   <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Logging out...
                   </span>
                 ) : (
-                  'Logout'
+                  "Logout"
                 )}
               </button>
             </div>
