@@ -119,8 +119,8 @@ const Sidebar: React.FC = () => {
                           href={item.link}
                           className={`flex items-center gap-3 py-2 px-4 rounded transition-colors ${
                             isActive
-                              ? "bg-[#D2B48C]"
-                              : "hover:bg-[#A07F62]"
+                              ? "bg-gray-200 text-[#5C4033] font-semibold"
+                              : "hover:bg-gray-100 hover:text-[#5C4033]"
                           }`}
                         >
                           <div className="min-w-[20px]">{item.icon}</div>
@@ -132,7 +132,7 @@ const Sidebar: React.FC = () => {
                         <li className={`mb-3 ${index !== 0 ? "mt-6" : ""}`}>
                           <button
                             onClick={() => toggleDropdown(item.label)}
-                            className="w-full flex items-center justify-between py-2 px-4 rounded hover:bg-[#A07F62] transition-colors"
+                            className="w-full flex items-center justify-between py-2 px-4 rounded hover:bg-gray-100 hover:text-[#5C4033] transition-colors"
                           >
                             <div className="flex items-center gap-3">
                               {item.icon && (
@@ -158,8 +158,8 @@ const Sidebar: React.FC = () => {
                                   href={child.link!}
                                   className={`flex items-center gap-3 py-2 px-4 rounded transition-colors ${
                                     isChildActive
-                                      ? "bg-[#A07F62] font-white"
-                                      : "hover:bg-[#A07F62]"
+                                      ? "bg-gray-200 text-[#5C4033] font-semibold"
+                                      : "hover:bg-gray-100 hover:text-[#5C4033]"
                                   }`}
                                 >
                                   <div className="min-w-[20px]">
@@ -183,7 +183,7 @@ const Sidebar: React.FC = () => {
         <div className="p-4">
           <button
             onClick={() => setShowLogoutConfirm(true)}
-            className="flex items-center justify-center gap-2 py-2 px-4 rounded hover:bg-[#A07F62] transition-colors w-full"
+            className="flex items-center justify-center gap-2 py-2 px-4 rounded hover:bg-gray-100 hover:text-[#5C4033] transition-colors w-full"
           >
             <LogOut size={22} />
             {isOpen && <span>Logout</span>}
