@@ -208,6 +208,12 @@ const UserManagementPage: React.FC = () => {
     data: users,
     enableRowActions: true,
     positionActionsColumn: "last",
+    enableEditing: true,
+    enableRowSelection: true,
+    enableColumnOrdering: true,
+    enableGlobalFilter: true,
+    enableSorting: true,
+    enablePagination: true,
     renderRowActions: ({ row }) => (
       <Box sx={{ display: "flex", gap: "8px" }}>
         <IconButton
@@ -251,7 +257,14 @@ const UserManagementPage: React.FC = () => {
           mb: 3,
         }}
       >
-        <Typography variant="h4" component="h1">
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            fontWeight: "bold",
+            color: "#5C4033",
+          }}
+        >
           User Management
         </Typography>
         <Button
