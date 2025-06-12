@@ -29,7 +29,7 @@ export interface Order {
     | "cancelled"
     | "refunded";
   items: OrderItem[];
-  paymentStatus: "unpaid" | "paid" | "refunded";
+  paymentStatus: "payment_verification" | "unpaid" | "paid" | "refunded";
   paymentDetails?: PaymentDetails;
   createdAt: Date;
   updatedAt: Date;
