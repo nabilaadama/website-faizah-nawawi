@@ -9,6 +9,7 @@ import { doc, getDoc, collection, query, where, getDocs, addDoc, serverTimestamp
 import { db } from '@/lib/firebase/firebase-config';
 import { toast } from 'react-hot-toast';
 import { Address } from '@/core/entities/address';
+import { BankAccount } from '@/core/entities/bank-account';
 import { Order, OrderItem } from "@/core/entities/order";
 import { User } from "@/core/entities/user";
 
@@ -29,9 +30,8 @@ export default function Checkout() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userData, setUserData] = useState<User | null>(null);
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [selectedAddressId, setSelectedAddressId] = useState<string>('');
-  const [useNewAddress, setUseNewAddress] = useState(false);
+  const [defaultAddress, setDefaultAddress] = useState<Address | null>(null);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [shippingConfirmed, setShippingConfirmed] = useState(false);
   
   const [formData, setFormData] = useState<CheckoutFormData>({
@@ -54,9 +54,22 @@ export default function Checkout() {
       return;
     }
 
-    fetchUserData();
-    fetchUserAddresses();
+    initializeData();
   }, [user, cart, router]);
+
+  const initializeData = async () => {
+    try {
+      await Promise.all([
+        fetchUserData(),
+        fetchDefaultAddress(),
+        fetchBankAccounts()
+      ]);
+    } catch (error) {
+      console.error('Error initializing data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchUserData = async () => {
     if (!user?.uid) return;
@@ -78,45 +91,71 @@ export default function Checkout() {
     }
   };
 
-  const fetchUserAddresses = async () => {
+  const fetchDefaultAddress = async () => {
     if (!user?.uid) return;
     
     try {
-      const addressesQuery = query(
-        collection(db, 'addresses'),
-        where('userId', '==', user.uid)
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const addresses = userData.addresses || [];
+        
+        // Find the default address
+        const defaultAddr = addresses.find((addr: any) => addr.isDefault === true);
+        
+        if (defaultAddr) {
+          const address: Address = {
+            id: defaultAddr.id,
+            userId: user.uid,
+            recipientName: defaultAddr.recipientName,
+            phoneNumber: userData.phoneNumber || '', // Use user's phone if not in address
+            province: defaultAddr.province,
+            city: defaultAddr.city,
+            district: defaultAddr.district,
+            postalCode: defaultAddr.postalCode,
+            fullAddress: defaultAddr.fullAddress,
+            isDefault: defaultAddr.isDefault,
+            notes: defaultAddr.notes || '',
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          
+          setDefaultAddress(address);
+          fillFormWithAddress(address);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching default address:', error);
+    }
+  };
+
+  const fetchBankAccounts = async () => {
+    try {
+      const bankAccountsQuery = query(
+        collection(db, 'bank-accounts'),
+        where('isActive', '==', true)
       );
-      const addressesSnapshot = await getDocs(addressesQuery);
+      const bankAccountsSnapshot = await getDocs(bankAccountsQuery);
       
-      const userAddresses = addressesSnapshot.docs.map(doc => ({
+      const activeBankAccounts = bankAccountsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate() || new Date(),
         updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-      })) as Address[];
+      })) as BankAccount[];
       
-      setAddresses(userAddresses);
-      
-      const defaultAddress = userAddresses.find(addr => addr.isDefault);
-      if (defaultAddress) {
-        setSelectedAddressId(defaultAddress.id);
-        fillFormWithAddress(defaultAddress);
-      } else if (userAddresses.length > 0) {
-        setSelectedAddressId(userAddresses[0].id);
-        fillFormWithAddress(userAddresses[0]);
-      } else {
-        setUseNewAddress(true);
-      }
+      setBankAccounts(activeBankAccounts);
     } catch (error) {
-      console.error('Error fetching addresses:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error fetching bank accounts:', error);
+      toast.error('Failed to load payment methods');
     }
   };
 
   const fillFormWithAddress = (address: Address) => {
     setFormData(prev => ({
       ...prev,
+      name: address.recipientName,
+      phoneNumber: address.phoneNumber || prev.phoneNumber, // Keep existing phone if address doesn't have one
       province: address.province,
       city: address.city,
       district: address.district,
@@ -124,16 +163,6 @@ export default function Checkout() {
       fullAddress: address.fullAddress,
       notes: address.notes || ''
     }));
-  };
-
-  const handleAddressSelect = (addressId: string) => {
-    setSelectedAddressId(addressId);
-    setUseNewAddress(false);
-    
-    const selectedAddress = addresses.find(addr => addr.id === addressId);
-    if (selectedAddress) {
-      fillFormWithAddress(selectedAddress);
-    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -157,7 +186,7 @@ export default function Checkout() {
     }
 
     if (!shippingConfirmed) {
-      toast.error('Harap konfirmasi ongkir terlebih dahulu');
+      toast.error('Please confirm shipping cost first');
       return;
     }
 
@@ -175,7 +204,7 @@ export default function Checkout() {
 
     try {
       const shippingAddress: Address = {
-        id: useNewAddress ? '' : selectedAddressId,
+        id: defaultAddress?.id || '',
         userId: user.uid,
         recipientName: formData.name,
         phoneNumber: formData.phoneNumber,
@@ -260,176 +289,179 @@ export default function Checkout() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* Left Side - Form */}
           <div className="space-y-8">
-            {/* Info Kontak */}
+            {/* Contact Information */}
             <div className="border-2 rounded-xl p-6">
               <div className="flex items-center mb-2">
                 <PhoneIcon className="w-5 h-5 text-black mr-2" />
-                <h2 className="font-regular text-lg text-black">INFO KONTAK</h2>
+                <h2 className="font-regular text-lg text-black">CONTACT INFORMATION</h2>
               </div>
               <hr className="w-full block border-black mb-4" />
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[15px] font-bold mb-1 text-black">Nama Lengkap</label>
+                  <label className="block text-[15px] font-bold mb-1 text-black">Full Name</label>
                   <input 
                     type="text" 
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="Masukkan Nama Lengkap" 
+                    placeholder="Enter Full Name" 
                     className="w-full h-[45px] text-[15px] px-4 p-2 border-2 rounded-md" 
                   />
                 </div>
                 <div>
-                  <label className="block text-[15px] font-bold mb-1 text-black">Nomor Telepon</label>
+                  <label className="block text-[15px] font-bold mb-1 text-black">Phone Number</label>
                   <input 
                     type="text" 
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
-                    placeholder="Masukkan Nomor Telepon" 
+                    placeholder="Enter Phone Number" 
                     className="w-full h-[45px] text-[15px] px-4 p-2 border-2 rounded-md" 
                   />
                 </div>
               </div>
             </div>
 
-            {/* Saved Addresses */}
-            {addresses.length > 0 && (
-              <div className="border-2 rounded-xl p-6">
-                <h2 className="font-regular text-lg text-black mb-4">ALAMAT TERSIMPAN</h2>
-                <div className="space-y-3 mb-4">
-                  {addresses.map((address) => (
-                    <div key={address.id} className="border rounded-md p-3">
-                      <div className="flex items-center mb-2">
-                        <input
-                          type="radio"
-                          id={`address-${address.id}`}
-                          name="selectedAddress"
-                          checked={selectedAddressId === address.id && !useNewAddress}
-                          onChange={() => handleAddressSelect(address.id)}
-                          className="mr-2"
-                        />
-                        <label htmlFor={`address-${address.id}`} className="font-medium text-black">
-                          {address.recipientName}
-                          {address.isDefault && <span className="ml-2 text-xs bg-yellow-400 text-black px-2 py-1 rounded">Default</span>}
-                        </label>
-                      </div>
-                      <p className="text-sm text-gray-600 ml-6">
-                        {address.fullAddress}, {address.district}, {address.city}, {address.province} {address.postalCode}
-                      </p>
-                      <p className="text-sm text-gray-600 ml-6">{address.phoneNumber}</p>
+            {/* Shipping Address - Auto-filled from default address */}
+            <div className="border-2 rounded-xl p-6">
+              <div className="flex items-center mb-2">
+                <MapPinIcon className="w-5 h-5 text-black mr-2" />
+                <h2 className="font-regular text-lg text-black">SHIPPING ADDRESS</h2>
+              </div>
+              <hr className="w-full block border-black mb-4" />
+              
+              {defaultAddress ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[15px] font-bold mb-1 text-black">Province</label>
+                      <input 
+                        type="text" 
+                        name="province"
+                        value={formData.province}
+                        readOnly
+                        className="w-full h-[45px] text-[15px] px-4 p-2 border-2 rounded-md bg-gray-100" 
+                      />
                     </div>
-                  ))}
+                    <div>
+                      <label className="block text-[15px] font-bold mb-1 text-black">City</label>
+                      <input 
+                        type="text" 
+                        name="city"
+                        value={formData.city}
+                        readOnly
+                        className="w-full h-[45px] text-[15px] px-4 p-2 border-2 rounded-md bg-gray-100" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[15px] font-bold mb-1 text-black">District</label>
+                      <input 
+                        type="text" 
+                        name="district"
+                        value={formData.district}
+                        readOnly
+                        className="w-full h-[45px] text-[15px] px-4 p-2 border-2 rounded-md bg-gray-100" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[15px] font-bold mb-1 text-black">Postal Code</label>
+                      <input 
+                        type="text" 
+                        name="postalCode"
+                        value={formData.postalCode}
+                        readOnly
+                        className="w-full h-[45px] text-[15px] px-4 p-2 border-2 rounded-md bg-gray-100" 
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[15px] font-bold mb-1 text-black">Full Address</label>
+                    <textarea
+                      name="fullAddress"
+                      value={formData.fullAddress}
+                      readOnly
+                      rows={3}
+                      className="w-full text-[15px] px-4 p-2 border-2 rounded-md resize-none bg-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[15px] font-bold mb-1 text-black">Notes (Optional)</label>
+                    <input 
+                      type="text" 
+                      name="notes"
+                      value={formData.notes}
+                      onChange={handleInputChange}
+                      placeholder="Example: please use extra bubble wrap" 
+                      className="w-full h-[45px] text-[15px] px-4 p-2 border-2 rounded-md" 
+                    />
+                  </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-sm text-blue-700">
+                      <span className="font-medium">Default Address:</span> This address is automatically selected from your default shipping address.
+                    </p>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setUseNewAddress(!useNewAddress)}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                >
-                  {useNewAddress ? 'Gunakan alamat tersimpan' : 'Gunakan alamat baru'}
-                </button>
-              </div>
-            )}
+              ) : (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm text-red-700">
+                    <span className="font-medium">No Default Address Found:</span> Please set a default address in your profile settings before proceeding with checkout.
+                  </p>
+                </div>
+              )}
+            </div>
 
-            {/* Alamat Pengiriman */}
-            {(useNewAddress || addresses.length === 0) && (
-              <div className="border-2 rounded-xl p-6">
-                <div className="flex items-center mb-2">
-                  <MapPinIcon className="w-5 h-5 text-black mr-2" />
-                  <h2 className="font-regular text-lg text-black">ALAMAT PENGIRIMAN</h2>
-                </div>
-                <hr className="w-full block border-black mb-4" />
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-[15px] font-bold mb-1 text-black">Provinsi</label>
-                    <input 
-                      type="text" 
-                      name="province"
-                      value={formData.province}
-                      onChange={handleInputChange}
-                      placeholder="Masukkan Provinsi" 
-                      className="w-full h-[45px] text-[15px] px-4 p-2 border-2 rounded-md" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[15px] font-bold mb-1 text-black">Kota</label>
-                    <input 
-                      type="text" 
-                      name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      placeholder="Masukkan Kota" 
-                      className="w-full h-[45px] text-[15px] px-4 p-2 border-2 rounded-md" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[15px] font-bold mb-1 text-black">Kecamatan</label>
-                    <input 
-                      type="text" 
-                      name="district"
-                      value={formData.district}
-                      onChange={handleInputChange}
-                      placeholder="Masukkan Kecamatan" 
-                      className="w-full h-[45px] text-[15px] px-4 p-2 border-2 rounded-md" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[15px] font-bold mb-1 text-black">Kode Pos</label>
-                    <input 
-                      type="text" 
-                      name="postalCode"
-                      value={formData.postalCode}
-                      onChange={handleInputChange}
-                      placeholder="Masukkan Kode Pos" 
-                      className="w-full h-[45px] text-[15px] px-4 p-2 border-2 rounded-md" 
-                    />
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-[15px] font-bold mb-1 text-black">Alamat Lengkap</label>
-                  <textarea
-                    name="fullAddress"
-                    value={formData.fullAddress}
-                    onChange={handleInputChange}
-                    placeholder="Masukkan alamat lengkap (nama jalan, nomor rumah, RT/RW, dll)"
-                    rows={3}
-                    className="w-full text-[15px] px-4 p-2 border-2 rounded-md resize-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[15px] font-bold mb-1 text-black">Catatan (Opsional)</label>
-                  <input 
-                    type="text" 
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleInputChange}
-                    placeholder="Contoh: kasi banyak bubble wrapnya kak" 
-                    className="w-full h-[45px] text-[15px] px-4 p-2 border-2 rounded-md" 
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Metode Pembayaran */}
+            {/* Payment Method */}
             <div className="border-2 rounded-xl p-6">
               <div className="flex items-center mb-2">
                 <CreditCardIcon className="w-5 h-5 text-black mr-2" />
-                <h2 className="font-regular text-lg text-black">METODE PEMBAYARAN</h2>
+                <h2 className="font-regular text-lg text-black">PAYMENT METHOD</h2>
               </div>
               <hr className="w-full block border-black mb-4" />
-              <div className="border-2 p-4 rounded-md bg-gray-50">
-                <p className="italic text-sm mb-2 text-black">Transfer menggunakan rekening a/n Faizah Nawawi.</p>
-                <img src="/assets/bni.png" alt="BNI Logo" className="w-20" />
-                <p className="text-xs text-gray-600 mt-2">
-                  Instruksi pembayaran akan dikirim setelah konfirmasi order.
-                </p>
-              </div>
+              
+              {bankAccounts.length > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600 mb-3">
+                    Bank transfer using the following account:
+                  </p>
+                  {bankAccounts.map((bankAccount) => (
+                    <div key={bankAccount.id} className="border-2 p-4 rounded-md bg-gray-50">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center">
+                          <img 
+                            src={`/assets/${bankAccount.bankName.toLowerCase()}.png`} 
+                            alt={bankAccount.bankName} 
+                            className="w-20 h-auto mr-3" 
+                            onError={(e) => {
+                              // Fallback if image not found
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                          <div>
+                            <p className="font-semibold text-black">{bankAccount.bankName}</p>
+                            <p className="text-sm text-gray-600">{bankAccount.accountNumber}</p>
+                            <p className="text-sm text-gray-600">{bankAccount.accountHolder}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <p className="text-xs text-gray-600 mt-2">
+                    Payment instructions will be sent after order confirmation.
+                  </p>
+                </div>
+              ) : (
+                <div className="border-2 p-4 rounded-md bg-gray-50">
+                  <p className="text-sm text-gray-600">
+                    Payment methods are currently unavailable. Please contact admin.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Right Side - Order Summary */}
           <div>
-            <h2 className="text-xl font-semibold text-black mb-2">Ringkasan Pesanan</h2>
+            <h2 className="text-xl font-semibold text-black mb-2">Order Summary</h2>
             <hr className="mb-6 border-black" />
             <div className="space-y-6">
               {/* Cart Items */}
@@ -474,9 +506,9 @@ export default function Checkout() {
                       className="mt-1 h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
                     />
                     <label htmlFor="shippingConfirmation" className="text-sm text-gray-700 leading-5">
-                      <span className="font-medium">Saya telah mengecek ongkir dari admin atau menerima berapapun ongkirnya</span>
+                      <span className="font-medium">I have checked the shipping cost with admin or accept any shipping charges</span>
                       <p className="text-xs text-gray-500 mt-1">
-                        Centang kotak ini untuk konfirmasi bahwa Anda telah menanyakan ongkir kepada admin atau siap menerima biaya ongkir yang akan dikenakan.
+                        Check this box to confirm that you have asked the admin about shipping costs or are ready to accept the shipping charges that will be applied.
                       </p>
                     </label>
                   </div>
@@ -485,12 +517,12 @@ export default function Checkout() {
 
               <button
                 onClick={handleSubmitOrder}
-                disabled={isSubmitting || !shippingConfirmed}
+                disabled={isSubmitting || !shippingConfirmed || !defaultAddress}
                 className={`w-full h-[50px] bg-yellow-400 hover:bg-yellow-500 transition text-center py-3 rounded-2xl shadow-md text-white font-semibold ${
-                  (isSubmitting || !shippingConfirmed) ? 'opacity-70 cursor-not-allowed' : ''
+                  (isSubmitting || !shippingConfirmed || !defaultAddress) ? 'opacity-70 cursor-not-allowed' : ''
                 }`}
               >
-                {isSubmitting ? 'Memproses...' : 'Buat Pesanan'}
+                {isSubmitting ? 'Processing...' : 'Place Order'}
               </button>
             </div>
           </div>
