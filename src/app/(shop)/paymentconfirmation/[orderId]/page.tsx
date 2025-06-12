@@ -243,32 +243,28 @@ export default function PaymentConfirmation() {
     try {
       console.log('Starting payment confirmation process...');
       
-      // Upload payment proof
       console.log('Uploading payment proof...');
       const paymentProofUrl = await uploadPaymentProof(formData.paymentProofFile);
       console.log('Payment proof uploaded:', paymentProofUrl);
 
-      // Create payment details with data from selected bank account
       const paymentDetails: PaymentDetails = {
-        // Customer payment data
         method: 'bank_transfer',
         bankName: selectedBankAccount.bankName,
         accountNumber: selectedBankAccount.accountNumber,
         accountHolder: selectedBankAccount.accountHolder,
         paymentProofUrl: paymentProofUrl,
         senderBank: formData.senderBank,
-        senderName: formData.senderName, // Customer sender name
-        senderAccountNumber: formData.senderAccountNumber || '', // Ensure not undefined
+        senderName: formData.senderName, 
+        senderAccountNumber: formData.senderAccountNumber || '', 
         paymentDate: new Date(),
       };
 
       console.log('Payment details to save:', paymentDetails);
 
-      // Prepare data for update - using only predefined status values
       const updatedOrderData = {
         paymentDetails: paymentDetails,
-        paymentStatus: 'unpaid', // Keep as unpaid until admin verifies and changes to 'paid'
-        status: 'processing', // Order is now being processed, waiting for admin verification
+        paymentStatus: 'Payment Verfication', 
+        status: 'pending', 
         updatedAt: serverTimestamp()
       };
 
@@ -276,13 +272,11 @@ export default function PaymentConfirmation() {
       console.log('Order ID:', orderId);
       console.log('Update data:', updatedOrderData);
 
-      // Update order with better error handling
       const orderRef = doc(db, 'orders', orderId);
       await updateDoc(orderRef, updatedOrderData);
       
       console.log('Order updated successfully');
 
-      // Verify saved data
       const updatedOrderDoc = await getDoc(orderRef);
       if (updatedOrderDoc.exists()) {
         const savedData = updatedOrderDoc.data();
@@ -290,12 +284,10 @@ export default function PaymentConfirmation() {
         console.log('Saved payment details:', savedData.paymentDetails);
       }
 
-      // Send WhatsApp notification to admin
       await sendWhatsAppNotification(order, paymentDetails);
 
       toast.success('Payment confirmation sent successfully! Admin will verify within 24 hours.');
       
-      // Redirect to success page or orders page
       setTimeout(() => {
         router.push('/orders');
       }, 2000);
@@ -303,7 +295,6 @@ export default function PaymentConfirmation() {
     } catch (error) {
       console.error('Error confirming payment:', error);
       
-      // Log error detail for debugging
       if (error instanceof Error) {
         console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
@@ -321,12 +312,10 @@ export default function PaymentConfirmation() {
     setIsCancelling(true);
 
     try {
-      // Delete the order from database
       await deleteDoc(doc(db, 'orders', orderId));
       
       toast.success('Payment cancelled successfully');
       
-      // Redirect to home or orders page
       setTimeout(() => {
         router.push('/products');
       }, 1000);
