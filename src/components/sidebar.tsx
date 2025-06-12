@@ -13,6 +13,10 @@ import {
   ChevronDown,
   ChevronUp,
   LogOut,
+  ShoppingCart,
+  CalendarCheck,
+  ListOrdered,
+  Boxes,
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -22,27 +26,27 @@ interface SidebarItem {
   children?: SidebarItem[];
 }
 
+const iconSize = 20;
+
 const sidebarItems: SidebarItem[] = [
-  { label: 'Dashboard', link: '/admin', icon: <Home size={20} /> },
+  { label: 'Dashboard', link: '/admin', icon: <Home size={iconSize} /> },
   {
-    label: 'Manage Data',
-    icon: <Users size={20} />,
+    label: 'Manage data',
     children: [
-      { label: 'User', link: '/admin/users' },
-      { label: 'Product', link: '/admin/products' },
-      { label: 'Category ', link: '/admin/products/new' },
+      { label: 'User', link: '/admin/users', icon: <User size={iconSize} /> },
+      { label: 'Product', link: '/admin/products', icon: <Boxes size={iconSize} /> },
+      { label: 'Category', link: '/admin/products/category', icon: <ListOrdered size={iconSize} /> },
+      { label: 'Bank Account', link: '/admin/bank-account', icon: <Package size={iconSize} /> },
     ],
   },
   {
     label: 'Manage Transaction',
-    icon: <Package size={20} />,
     children: [
-      { label: 'Order', link: '/admin/order' },
-      { label: 'Booking Appointment', link: '/admin/bookingappoinment' },
+      { label: 'Order', link: '/admin/order', icon: <ShoppingCart size={iconSize} /> },
+      { label: 'Booking Appointment', link: '/admin/bookingappoinment', icon: <CalendarCheck size={iconSize} /> },
     ],
   },
-  
-  { label: 'Profile Admin', link: '/admin/profile', icon: <User size={20} /> },
+  { label: 'Profile Admin', link: '/admin/profile', icon: <User size={21} /> },
 ];
 
 const Sidebar: React.FC = () => {
@@ -61,8 +65,6 @@ const Sidebar: React.FC = () => {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      // Replace with your actual logout API call
-      // await fetch('/api/admin/logout', { method: 'POST' });
       router.push('/admin/login');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -74,77 +76,103 @@ const Sidebar: React.FC = () => {
 
   return (
     <>
-      {/* Sidebar */}
-      <div className={`h-full ${ isOpen ? 'w-72' : 'w-20'} bg-[#A67C52] text-white flex flex-col justify-between transition-all duration-300`}>
+      <div
+        className={`h-full ${
+          isOpen ? "w-80" : "w-20"
+        } bg-white text-black flex flex-col justify-between transition-all duration-300`}
+      >
         {/* Header */}
         <div>
-          <div className="p-4 border-gray-700 flex justify-between items-center">
+          <div className="p-4 flex items-center justify-between">
             {isOpen && (
-              <img 
+              <img
                 src="/assets/logosamping.png"
-                alt="Admin Panel Logo" 
-                className="h-12 w-auto mx-auto" // tambahkan mx-auto
+                alt="Admin Panel Logo"
+                className="h-12 w-auto mx-auto"
               />
             )}
-            <button onClick={toggleSidebar} className="text-white">
-              {isOpen ? <ArrowLeft size={24} /> : <Menu size={24} />}
+            <button
+              onClick={toggleSidebar}
+              className={`text-black ml-2 ${!isOpen ? "ml-auto mr-3" : ""}`}
+            >
+              {isOpen ? (
+                <ArrowLeft size={iconSize} />
+              ) : (
+                <Menu size={iconSize} />
+              )}
             </button>
           </div>
 
           {/* Navigation */}
           <nav className="p-4">
-            <ul className="space-y-2">
+            <ul>
               {sidebarItems.map((item, index) => {
                 const isDropdown = !!item.children;
                 const isActive = pathname === item.link;
                 const isDropdownOpen = openDropdowns[item.label];
 
                 return (
-                  <li key={index}>
+                  <React.Fragment key={index}>
                     {item.link ? (
-                      <Link
-                        href={item.link}
-                        className={`flex items-center gap-3 py-2 px-4 rounded transition-colors ${
-                          isActive ? 'bg-[#5E4734] font-semibold' : 'hover:bg-[#8C6A4F]'
-                        }`}
-                      >
-                        {item.icon}
-                        {isOpen && <span>{item.label}</span>}
-                      </Link>
-                    ) : (
-                      <button
-                        onClick={() => toggleDropdown(item.label)}
-                        className="w-full flex items-center justify-between py-2 px-4 rounded hover:bg-[#8C6A4F] transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          {item.icon}
+                      <li className={`mb-3 ${index !== 0 ? "mt-6" : ""}`}>
+                        <Link
+                          href={item.link}
+                          className={`flex items-center gap-3 py-2 px-4 rounded transition-colors ${
+                            isActive
+                              ? "bg-gray-200 text-[#5C4033] font-semibold"
+                              : "hover:bg-gray-100 hover:text-[#5C4033]"
+                          }`}
+                        >
+                          <div className="min-w-[20px]">{item.icon}</div>
                           {isOpen && <span>{item.label}</span>}
-                        </div>
-                        {isOpen && (isDropdownOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />)}
-                      </button>
-                    )}
+                        </Link>
+                      </li>
+                    ) : (
+                      <>
+                        <li className={`mb-3 ${index !== 0 ? "mt-6" : ""}`}>
+                          <button
+                            onClick={() => toggleDropdown(item.label)}
+                            className="w-full flex items-center justify-between py-2 px-4 rounded hover:bg-gray-100 hover:text-[#5C4033] transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              {item.icon && (
+                                <div className="min-w-[20px]">{item.icon}</div>
+                              )}
+                              {isOpen && <span>{item.label}</span>}
+                            </div>
+                            {isOpen &&
+                              (isDropdownOpen ? (
+                                <ChevronUp size={18} />
+                              ) : (
+                                <ChevronDown size={18} />
+                              ))}
+                          </button>
+                        </li>
 
-                    {/* Sub-items */}
-                    {isDropdown && isDropdownOpen && isOpen && (
-                      <ul className="ml-8 mt-1 space-y-1">
-                        {item.children!.map((child, idx) => {
-                          const isChildActive = pathname === child.link;
-                          return (
-                            <li key={idx}>
-                              <Link
-                                href={child.link!}
-                                className={`flex items-center py-1.5 px-3 rounded text-sm ${
-                                  isChildActive ? 'bg-[#5E4734] font-semibold' : 'hover:bg-[#8C6A4F]'
-                                }`}
-                              >
-                                <span>{child.label}</span>
-                              </Link>
-                            </li>
-                          );
-                        })}
-                      </ul>
+                        {(isDropdownOpen || !isOpen) &&
+                          item.children?.map((child, idx) => {
+                            const isChildActive = pathname === child.link;
+                            return (
+                              <li key={idx} className="mb-3">
+                                <Link
+                                  href={child.link!}
+                                  className={`flex items-center gap-3 py-2 px-4 rounded transition-colors ${
+                                    isChildActive
+                                      ? "bg-gray-200 text-[#5C4033] font-semibold"
+                                      : "hover:bg-gray-100 hover:text-[#5C4033]"
+                                  }`}
+                                >
+                                  <div className="min-w-[20px]">
+                                    {child.icon}
+                                  </div>
+                                  {isOpen && <span>{child.label}</span>}
+                                </Link>
+                              </li>
+                            );
+                          })}
+                      </>
                     )}
-                  </li>
+                  </React.Fragment>
                 );
               })}
             </ul>
@@ -152,25 +180,27 @@ const Sidebar: React.FC = () => {
         </div>
 
         {/* Logout Button */}
-        <div className="p-4 border-gray-700">
+        <div className="p-4">
           <button
             onClick={() => setShowLogoutConfirm(true)}
-            className="flex items-center justify-center gap-2 py-2 px-4 rounded hover:bg-[#8C6A4F] transition-colors w-full"
+            className="flex items-center justify-center gap-2 py-2 px-4 rounded hover:bg-gray-100 hover:text-[#5C4033] transition-colors w-full"
           >
-            <LogOut size={20} />
+            <LogOut size={22} />
             {isOpen && <span>Logout</span>}
           </button>
         </div>
       </div>
 
-      {/* Logout Confirmation Modal */}
+      {/* Logout Modal */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
           <div className="bg-white p-6 rounded-lg shadow-lg w-[400px]">
             <div className="flex flex-col items-center">
               <LogOut className="h-12 w-12 text-red-600" />
               <h2 className="text-xl font-bold text-black mt-3">Logout</h2>
-              <p className="text-gray-600 mt-1">Apakah Anda yakin ingin keluar?</p>
+              <p className="text-gray-600 mt-1">
+                Apakah Anda yakin ingin keluar?
+              </p>
             </div>
             <div className="flex justify-center gap-4 mt-6">
               <button
@@ -183,19 +213,35 @@ const Sidebar: React.FC = () => {
                 onClick={handleLogout}
                 disabled={isLoggingOut}
                 className={`bg-red-500 text-white py-2 px-6 rounded-md hover:bg-red-600 transition-colors ${
-                  isLoggingOut ? 'opacity-70 cursor-not-allowed' : ''
+                  isLoggingOut ? "opacity-70 cursor-not-allowed" : ""
                 }`}
               >
                 {isLoggingOut ? (
                   <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Logging out...
                   </span>
                 ) : (
-                  'Logout'
+                  "Logout"
                 )}
               </button>
             </div>

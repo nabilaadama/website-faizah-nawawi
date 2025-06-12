@@ -66,16 +66,19 @@ const AdminBookingsPage = () => {
         accessorKey: "name",
         header: "Nama",
         size: 150,
+        enableEditing: false,
       },
       {
         accessorKey: "email",
         header: "Email",
         size: 200,
+        enableEditing: false,
       },
       {
         accessorKey: "whatsapp",
         header: "WhatsApp",
         size: 150,
+        enableEditing: false,
       },
       {
         accessorKey: "appointmentDate",
@@ -118,20 +121,27 @@ const AdminBookingsPage = () => {
         },
         muiEditTextFieldProps: ({ row }) => ({
           select: true,
-          children: (
-            <>
-              <MenuItem value="pending">Menunggu</MenuItem>
-              <MenuItem value="confirmed">Dikonfirmasi</MenuItem>
-              <MenuItem value="completed">Selesai</MenuItem>
-              <MenuItem value="cancelled">Dibatalkan</MenuItem>
-            </>
-          ),
+          children: [
+            <MenuItem key="pending" value="pending">
+              Menunggu
+            </MenuItem>,
+            <MenuItem key="confirmed" value="confirmed">
+              Dikonfirmasi
+            </MenuItem>,
+            <MenuItem key="completed" value="completed">
+              Selesai
+            </MenuItem>,
+            <MenuItem key="cancelled" value="cancelled">
+              Dibatalkan
+            </MenuItem>,
+          ],
         }),
       },
       {
         accessorKey: "notes",
         header: "Catatan",
         size: 200,
+        enableEditing: false,
         Cell: ({ cell }) => {
           const notes = cell.getValue<string>();
           return notes ? (
@@ -183,12 +193,8 @@ const AdminBookingsPage = () => {
     values,
   }) => {
     const updatedData: Partial<Booking> = {
-      name: values.name,
-      email: values.email,
-      whatsapp: values.whatsapp,
       appointmentDate: new Date(values.appointmentDate),
       status: values.status as Booking['status'],
-      notes: values.notes,
     };
 
     const result = await updateBooking(row.original.id, updatedData);
@@ -226,84 +232,104 @@ const AdminBookingsPage = () => {
   const table = useMaterialReactTable({
     columns,
     data: bookings,
-    createDisplayMode: 'modal',
-    editDisplayMode: 'modal',
+    positionActionsColumn: "last",
+    createDisplayMode: "modal",
+    editDisplayMode: "row",
     enableEditing: true,
-    enableRowSelection: false,
+    enableRowSelection: true,
     enableColumnOrdering: true,
     enableGlobalFilter: true,
     enableSorting: true,
     enablePagination: true,
     initialState: {
       pagination: { pageSize: 10, pageIndex: 0 },
-      sorting: [{ id: 'createdAt', desc: true }],
+      sorting: [{ id: "createdAt", desc: true }],
     },
     muiToolbarAlertBannerProps: error
       ? {
-          color: 'error',
+          color: "error",
           children: error,
         }
       : undefined,
     onEditingRowSave: handleSaveBooking,
     renderRowActions: ({ row, table }) => (
-      <Box sx={{ display: 'flex', gap: '1rem' }}>
+      <Box sx={{ display: "flex", gap: "1rem" }}>
         <Tooltip title="Edit">
-          <IconButton onClick={() => table.setEditingRow(row)}>
+          <IconButton
+            onClick={() => table.setEditingRow(row)}
+            color="primary"
+            size="small"
+          >
             <Edit />
           </IconButton>
         </Tooltip>
         <Tooltip title="Delete">
-          <IconButton color="error" onClick={() => handleDeleteBooking(row)}>
+          <IconButton
+            onClick={() => handleDeleteBooking(row)}
+            color="error"
+            size="small"
+          >
             <Delete />
           </IconButton>
         </Tooltip>
       </Box>
     ),
-    renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
-      <>
-        <DialogTitle variant="h6">Edit Booking</DialogTitle>
-        <DialogContent
-          sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', pt: 2 }}
-        >
-          {internalEditComponents}
-          
-          {/* Quick Status Update Buttons */}
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>
-              Quick Status Update:
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {(['pending', 'confirmed', 'completed', 'cancelled'] as Booking['status'][]).map((status) => (
-                <Button
-                  key={status}
-                  variant="outlined"
-                  size="small"
-                  onClick={() => handleQuickStatusUpdate(row.original.id, status)}
-                  sx={{
-                    borderColor: bookingService.getStatusColor(status),
-                    color: bookingService.getStatusColor(status),
-                    '&:hover': {
-                      backgroundColor: bookingService.getStatusColor(status),
-                      color: 'white',
-                    }
-                  }}
-                >
-                  {bookingService.getStatusLabel(status)}
-                </Button>
-              ))}
-            </Box>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <MRT_EditActionButtons variant="text" table={table} row={row} />
-        </DialogActions>
-      </>
-    ),
+    // renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
+    //   <>
+    //     <DialogTitle variant="h6">Edit Booking</DialogTitle>
+    //     <DialogContent
+    //       sx={{
+    //         display: "flex",
+    //         flexDirection: "column",
+    //         gap: "1.5rem",
+    //         pt: 2,
+    //       }}
+    //     >
+    //       {internalEditComponents}
+
+    //       {/* Quick Status Update Buttons */}
+    //       <Box>
+    //         <Typography variant="subtitle2" gutterBottom>
+    //           Quick Status Update:
+    //         </Typography>
+    //         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+    //           {(
+    //             [
+    //               "pending",
+    //               "confirmed",
+    //               "completed",
+    //               "cancelled",
+    //             ] as Booking["status"][]
+    //           ).map((status) => (
+    //             <Button
+    //               key={status}
+    //               variant="outlined"
+    //               size="small"
+    //               onClick={() =>
+    //                 handleQuickStatusUpdate(row.original.id, status)
+    //               }
+    //               sx={{
+    //                 borderColor: bookingService.getStatusColor(status),
+    //                 color: bookingService.getStatusColor(status),
+    //                 "&:hover": {
+    //                   backgroundColor: bookingService.getStatusColor(status),
+    //                   color: "white",
+    //                 },
+    //               }}
+    //             >
+    //               {bookingService.getStatusLabel(status)}
+    //             </Button>
+    //           ))}
+    //         </Box>
+    //       </Box>
+    //     </DialogContent>
+    //     <DialogActions>
+    //       <MRT_EditActionButtons variant="text" table={table} row={row} />
+    //     </DialogActions>
+    //   </>
+    // ),
     renderTopToolbarCustomActions: () => (
-      <Box sx={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <Typography variant="h5" component="h1">
-          Manajemen Booking
-        </Typography>
+      <Box sx={{ display: "flex", gap: "1rem", alignItems: "center" }}>
         <Tooltip title="Refresh">
           <IconButton onClick={refetch}>
             <Refresh />
@@ -318,18 +344,37 @@ const AdminBookingsPage = () => {
 
   return (
     <Box sx={{ padding: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            fontWeight: "bold",
+            color: "#5C4033",
+          }}
+        >
+          Booking Management
+        </Typography>
+      </Box>
       <MaterialReactTable table={table} />
-      
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
         <Alert
           onClose={handleCloseSnackbar}
           severity={snackbar.severity}
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {snackbar.message}
         </Alert>

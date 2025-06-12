@@ -30,7 +30,7 @@ export default function Sidebar() {
 
   return (
     <>
-      <aside className="w-64 border-r p-6 bg-white h-full">
+      <aside className="w-64 h-screen border-r border-gray-300 p-6 bg-white">
         <nav className="flex flex-col gap-4">
           <Link href="/profile">
             <div
