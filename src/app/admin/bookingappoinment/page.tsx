@@ -234,9 +234,9 @@ const AdminBookingsPage = () => {
     data: bookings,
     positionActionsColumn: "last",
     createDisplayMode: "modal",
-    editDisplayMode: "modal",
+    editDisplayMode: "row",
     enableEditing: true,
-    enableRowSelection: false,
+    enableRowSelection: true,
     enableColumnOrdering: true,
     enableGlobalFilter: true,
     enableSorting: true,
@@ -255,76 +255,81 @@ const AdminBookingsPage = () => {
     renderRowActions: ({ row, table }) => (
       <Box sx={{ display: "flex", gap: "1rem" }}>
         <Tooltip title="Edit">
-          <IconButton onClick={() => table.setEditingRow(row)}>
+          <IconButton
+            onClick={() => table.setEditingRow(row)}
+            color="primary"
+            size="small"
+          >
             <Edit />
           </IconButton>
         </Tooltip>
         <Tooltip title="Delete">
-          <IconButton color="error" onClick={() => handleDeleteBooking(row)}>
+          <IconButton
+            onClick={() => handleDeleteBooking(row)}
+            color="error"
+            size="small"
+          >
             <Delete />
           </IconButton>
         </Tooltip>
       </Box>
     ),
-    renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
-      <>
-        <DialogTitle variant="h6">Edit Booking</DialogTitle>
-        <DialogContent
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "1.5rem",
-            pt: 2,
-          }}
-        >
-          {internalEditComponents}
+    // renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
+    //   <>
+    //     <DialogTitle variant="h6">Edit Booking</DialogTitle>
+    //     <DialogContent
+    //       sx={{
+    //         display: "flex",
+    //         flexDirection: "column",
+    //         gap: "1.5rem",
+    //         pt: 2,
+    //       }}
+    //     >
+    //       {internalEditComponents}
 
-          {/* Quick Status Update Buttons */}
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>
-              Quick Status Update:
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              {(
-                [
-                  "pending",
-                  "confirmed",
-                  "completed",
-                  "cancelled",
-                ] as Booking["status"][]
-              ).map((status) => (
-                <Button
-                  key={status}
-                  variant="outlined"
-                  size="small"
-                  onClick={() =>
-                    handleQuickStatusUpdate(row.original.id, status)
-                  }
-                  sx={{
-                    borderColor: bookingService.getStatusColor(status),
-                    color: bookingService.getStatusColor(status),
-                    "&:hover": {
-                      backgroundColor: bookingService.getStatusColor(status),
-                      color: "white",
-                    },
-                  }}
-                >
-                  {bookingService.getStatusLabel(status)}
-                </Button>
-              ))}
-            </Box>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <MRT_EditActionButtons variant="text" table={table} row={row} />
-        </DialogActions>
-      </>
-    ),
+    //       {/* Quick Status Update Buttons */}
+    //       <Box>
+    //         <Typography variant="subtitle2" gutterBottom>
+    //           Quick Status Update:
+    //         </Typography>
+    //         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+    //           {(
+    //             [
+    //               "pending",
+    //               "confirmed",
+    //               "completed",
+    //               "cancelled",
+    //             ] as Booking["status"][]
+    //           ).map((status) => (
+    //             <Button
+    //               key={status}
+    //               variant="outlined"
+    //               size="small"
+    //               onClick={() =>
+    //                 handleQuickStatusUpdate(row.original.id, status)
+    //               }
+    //               sx={{
+    //                 borderColor: bookingService.getStatusColor(status),
+    //                 color: bookingService.getStatusColor(status),
+    //                 "&:hover": {
+    //                   backgroundColor: bookingService.getStatusColor(status),
+    //                   color: "white",
+    //                 },
+    //               }}
+    //             >
+    //               {bookingService.getStatusLabel(status)}
+    //             </Button>
+    //           ))}
+    //         </Box>
+    //       </Box>
+    //     </DialogContent>
+    //     <DialogActions>
+    //       <MRT_EditActionButtons variant="text" table={table} row={row} />
+    //     </DialogActions>
+    //   </>
+    // ),
     renderTopToolbarCustomActions: () => (
       <Box sx={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-        <Typography variant="h5" component="h1">
-          Manajemen Booking
-        </Typography>
         <Tooltip title="Refresh">
           <IconButton onClick={refetch}>
             <Refresh />
@@ -339,18 +344,37 @@ const AdminBookingsPage = () => {
 
   return (
     <Box sx={{ padding: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            fontWeight: "bold",
+            color: "#5C4033",
+          }}
+        >
+          Booking Management
+        </Typography>
+      </Box>
       <MaterialReactTable table={table} />
-      
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
         <Alert
           onClose={handleCloseSnackbar}
           severity={snackbar.severity}
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {snackbar.message}
         </Alert>
