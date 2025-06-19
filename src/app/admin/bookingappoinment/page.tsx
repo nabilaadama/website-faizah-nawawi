@@ -29,6 +29,7 @@ import {
 import { Delete, Edit, Refresh } from "@mui/icons-material";
 import { Booking } from "@/core/entities/booking";
 import { useBookings } from "@/presentation/hooks/admin/use-booking";
+import { MessageCircle } from "lucide-react";
 
 const AdminBookingsPage = () => {
   const {
@@ -219,6 +220,39 @@ const AdminBookingsPage = () => {
     }
   };
 
+  const openWhatsApp = (phoneNumber: string, appointmentDate: string) => { 
+    if (!phoneNumber) {
+      alert('Nomor telepon tidak tersedia');
+      return;
+    }
+
+    let cleanPhone = phoneNumber.replace(/\D/g, '');
+    
+    if (cleanPhone.startsWith('0')) {
+      cleanPhone = '62' + cleanPhone.substring(1);
+    } else if (cleanPhone.startsWith('8')) {
+      cleanPhone = '62' + cleanPhone;
+    } else if (!cleanPhone.startsWith('62')) {
+      cleanPhone = '62' + cleanPhone;
+    }
+
+    if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+      alert('Format nomor telepon tidak valid');
+      return;
+    }
+
+    const message = `Halo, saya dari admin Faizah Nawawi. Terkait booking appointment Anda pada tanggal ${appointmentDate}, ingin mengonfirmasi terkait appoinment Anda.`;
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    
+    console.log('Original phone:', phoneNumber);
+    console.log('Cleaned phone:', cleanPhone);
+    console.log('WhatsApp URL:', whatsappUrl);
+    
+    window.open(whatsappUrl, '_blank');
+  };
+
+  
+
   // const handleQuickStatusUpdate = async (bookingId: string, newStatus: Booking['status']) => {
   //   const result = await updateBookingStatus(bookingId, newStatus);
     
@@ -270,6 +304,15 @@ const AdminBookingsPage = () => {
             size="small"
           >
             <Delete />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Contact via WhatsApp">
+          <IconButton
+            onClick={() => openWhatsApp(row.original.whatsapp, row.original.appointmentDate.toLocaleString())}
+            size="small"
+            sx={{ color: '#25d366' }}
+          >
+            <MessageCircle size={16} />
           </IconButton>
         </Tooltip>
       </Box>
