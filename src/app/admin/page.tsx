@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
-import { ShoppingBag, Users, Package, Calendar, Star, TrendingUp, DollarSign, Eye, Clock, CheckCircle } from 'lucide-react';
+import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
+import { ShoppingBag, Users, Package, Calendar, DollarSign, Clock,} from 'lucide-react';
 import { db } from '@/lib/firebase/firebase-config'; 
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 
-// Type definitions based on your entities
 interface OrderItem {
   id?: string;
   productId: string;
@@ -254,7 +253,6 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch all data on component mount
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -307,7 +305,6 @@ const Dashboard = () => {
   const lowStockProducts = data.products.filter(p => p.stock < 5).length;
   const pendingOrders = data.orders.filter(o => o.status === 'pending').length;
 
-  // Generate monthly data from actual orders
   const generateMonthlyData = () => {
     const monthlyData = Array.from({ length: 6 }, (_, i) => {
       const date = new Date();
@@ -408,7 +405,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
           <p className="text-gray-600 mt-4">Loading dashboard data...</p>
@@ -419,7 +416,7 @@ const Dashboard = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-600 text-6xl mb-4">⚠️</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Dashboard</h2>
@@ -436,12 +433,12 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-5">
+      <div className="max-w-7xl mx-auto ">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Fashion Designer Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's what's happening with your fashion business today.</p>
+          <h1 className="text-3xl font-bold text-[#5C4033] mb-2">Dashboard</h1>
+          <p className="text-[#5C4033]">Faizah Nawawi's Website Management</p>
         </div>
 
         {/* Stats Grid */}
@@ -450,28 +447,24 @@ const Dashboard = () => {
             title="Total Products"
             value={totalProducts}
             icon={Package}
-            trend={{ positive: true, value: "+12% from last month" }}
             color="blue"
           />
           <StatCard
             title="Total Orders"
             value={totalOrders}
             icon={ShoppingBag}
-            trend={{ positive: true, value: "+8% from last month" }}
             color="green"
           />
           <StatCard
             title="Total Revenue"
             value={formatCurrency(totalRevenue)}
             icon={DollarSign}
-            trend={{ positive: true, value: "+15% from last month" }}
             color="purple"
           />
           <StatCard
             title="Active Customers"
             value={totalUsers}
             icon={Users}
-            trend={{ positive: true, value: "+5% from last month" }}
             color="pink"
           />
         </div>

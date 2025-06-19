@@ -21,6 +21,7 @@ import {
 import { Delete, Edit, Refresh } from "@mui/icons-material";
 import { Booking } from "@/core/entities/booking";
 import { useBookings } from "@/presentation/hooks/admin/use-booking";
+import { MessageCircle } from "lucide-react";
 
 const AdminBookingsPage = () => {
   const {
@@ -210,7 +211,6 @@ const AdminBookingsPage = () => {
       }
     }
   };
-
   const table = useMaterialReactTable({
     columns,
     data: bookings,
@@ -252,6 +252,15 @@ const AdminBookingsPage = () => {
             size="small"
           >
             <Delete />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Contact via WhatsApp">
+          <IconButton
+            onClick={() => openWhatsApp(row.original.whatsapp, row.original.appointmentDate.toLocaleString())}
+            size="small"
+            sx={{ color: '#25d366' }}
+          >
+            <MessageCircle size={16} />
           </IconButton>
         </Tooltip>
       </Box>
