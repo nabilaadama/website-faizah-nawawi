@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from "react";
 import {
-  MRT_EditActionButtons,
   MaterialReactTable,
   type MRT_ColumnDef,
   type MRT_Row,
@@ -11,18 +10,11 @@ import {
 } from "material-react-table";
 import {
   Box,
-  Button,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   IconButton,
   Tooltip,
   Typography,
   Chip,
-  Select,
   MenuItem,
-  FormControl,
-  InputLabel,
   Alert,
   Snackbar,
 } from "@mui/material";
@@ -219,50 +211,6 @@ const AdminBookingsPage = () => {
       }
     }
   };
-
-  const openWhatsApp = (phoneNumber: string, appointmentDate: string) => { 
-    if (!phoneNumber) {
-      alert('Nomor telepon tidak tersedia');
-      return;
-    }
-
-    let cleanPhone = phoneNumber.replace(/\D/g, '');
-    
-    if (cleanPhone.startsWith('0')) {
-      cleanPhone = '62' + cleanPhone.substring(1);
-    } else if (cleanPhone.startsWith('8')) {
-      cleanPhone = '62' + cleanPhone;
-    } else if (!cleanPhone.startsWith('62')) {
-      cleanPhone = '62' + cleanPhone;
-    }
-
-    if (cleanPhone.length < 10 || cleanPhone.length > 15) {
-      alert('Format nomor telepon tidak valid');
-      return;
-    }
-
-    const message = `Halo, saya dari admin Faizah Nawawi. Terkait booking appointment Anda pada tanggal ${appointmentDate}, ingin mengonfirmasi terkait appoinment Anda.`;
-    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-    
-    console.log('Original phone:', phoneNumber);
-    console.log('Cleaned phone:', cleanPhone);
-    console.log('WhatsApp URL:', whatsappUrl);
-    
-    window.open(whatsappUrl, '_blank');
-  };
-
-  
-
-  // const handleQuickStatusUpdate = async (bookingId: string, newStatus: Booking['status']) => {
-  //   const result = await updateBookingStatus(bookingId, newStatus);
-    
-  //   if (result.success) {
-  //     showSnackbar(`Status berhasil diubah ke ${bookingService.getStatusLabel(newStatus)}`, 'success');
-  //   } else {
-  //     showSnackbar(result.error || 'Gagal mengubah status', 'error');
-  //   }
-  // };
-
   const table = useMaterialReactTable({
     columns,
     data: bookings,
@@ -386,7 +334,7 @@ const AdminBookingsPage = () => {
   });
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box sx={{ padding: "24px" }}>
       <Box
         sx={{
           display: "flex",
