@@ -219,15 +219,15 @@ const AdminBookingsPage = () => {
     }
   };
 
-  const handleQuickStatusUpdate = async (bookingId: string, newStatus: Booking['status']) => {
-    const result = await updateBookingStatus(bookingId, newStatus);
+  // const handleQuickStatusUpdate = async (bookingId: string, newStatus: Booking['status']) => {
+  //   const result = await updateBookingStatus(bookingId, newStatus);
     
-    if (result.success) {
-      showSnackbar(`Status berhasil diubah ke ${bookingService.getStatusLabel(newStatus)}`, 'success');
-    } else {
-      showSnackbar(result.error || 'Gagal mengubah status', 'error');
-    }
-  };
+  //   if (result.success) {
+  //     showSnackbar(`Status berhasil diubah ke ${bookingService.getStatusLabel(newStatus)}`, 'success');
+  //   } else {
+  //     showSnackbar(result.error || 'Gagal mengubah status', 'error');
+  //   }
+  // };
 
   const table = useMaterialReactTable({
     columns,
