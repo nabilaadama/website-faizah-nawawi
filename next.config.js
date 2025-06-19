@@ -2,9 +2,16 @@
 const nextConfig = {
   reactStrictMode: true,
   webpack: (config) => {
-    // Fix for firebase/auth in Next.js
     config.externals = [...(config.externals || []), { encoding: "encoding" }];
     return config;
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+    ],
   },
 };
 
