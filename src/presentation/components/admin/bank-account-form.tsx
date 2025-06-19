@@ -24,7 +24,8 @@ interface BankAccountFormProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (
-    data: CreateBankAccountRequest | UpdateBankAccountRequest
+    data: CreateBankAccountRequest | UpdateBankAccountRequest,
+    mode: "create" | "edit"
   ) => Promise<void>;
   initialData?: BankAccount | null;
   mode: "create" | "edit";
@@ -77,28 +78,35 @@ export const BankAccountForm: React.FC<BankAccountFormProps> = ({
       }));
     };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
+    const handleSubmit = async (event: React.FormEvent) => {
+      event.preventDefault();
+      setLoading(true);
+      setError(null);
 
-    try {
-      if (mode === "create") {
-        await onSubmit({
-          bankName: formData.bankName,
-          accountNumber: formData.accountNumber,
-          accountHolder: formData.accountHolder,
-        });
-      } else {
-        await onSubmit(formData);
+      try {
+        if (mode === "create") {
+          const createData: CreateBankAccountRequest = {
+            bankName: formData.bankName,
+            accountNumber: formData.accountNumber,
+            accountHolder: formData.accountHolder,
+          };
+          await onSubmit(createData, "create");
+        } else {
+          const updateData: UpdateBankAccountRequest = {
+            bankName: formData.bankName,
+            accountNumber: formData.accountNumber,
+            accountHolder: formData.accountHolder,
+            isActive: formData.isActive,
+          };
+          await onSubmit(updateData, "edit");
+        }
+        onClose();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
       }
-      onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
   const isFormValid =
     formData.bankName.trim() &&

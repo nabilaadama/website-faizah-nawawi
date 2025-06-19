@@ -162,26 +162,18 @@ export const BankAccountTable: React.FC<BankAccountTableProps> = ({
   const table = useMaterialReactTable({
     columns,
     data,
-    enableRowSelection: false,
+    positionActionsColumn: "last",
+    createDisplayMode: "modal",
+    editDisplayMode: "row",
+    enableEditing: true,
+    enableRowSelection: true,
     enableColumnOrdering: true,
     enableGlobalFilter: true,
-    enableColumnFilters: true,
-    enablePagination: true,
     enableSorting: true,
-    state: {
-      isLoading: loading,
-    },
-    muiTablePaperProps: {
-      elevation: 0,
-      sx: {
-        borderRadius: "12px",
-        border: "1px solid #e0e0e0",
-      },
-    },
-    muiTableProps: {
-      sx: {
-        tableLayout: "fixed",
-      },
+    enablePagination: true,
+    initialState: {
+      pagination: { pageSize: 10, pageIndex: 0 },
+      sorting: [{ id: "createdAt", desc: true }],
     },
     renderRowActions: ({ row }) => (
       <Box sx={{ display: "flex", gap: "4px" }}>
@@ -208,32 +200,32 @@ export const BankAccountTable: React.FC<BankAccountTableProps> = ({
         </Tooltip>
       </Box>
     ),
-    renderTopToolbarCustomActions: () => (
-      <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleCreate}
-        >
-          Add Bank Account
-        </Button>
-        <Button variant="outlined" onClick={onRefresh}>
-          Refresh
-        </Button>
-      </Box>
-    ),
-    initialState: {
-      pagination: {
-        pageSize: 10,
-        pageIndex: 0,
-      },
-      sorting: [
-        {
-          id: "createdAt",
-          desc: true,
-        },
-      ],
-    },
+    // renderTopToolbarCustomActions: () => (
+    //   <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+    //     <Button
+    //       variant="contained"
+    //       startIcon={<AddIcon />}
+    //       onClick={handleCreate}
+    //     >
+    //       Add Bank Account
+    //     </Button>
+    //     <Button variant="outlined" onClick={onRefresh}>
+    //       Refresh
+    //     </Button>
+    //   </Box>
+    // ),
+    // initialState: {
+    //   pagination: {
+    //     pageSize: 10,
+    //     pageIndex: 0,
+    //   },
+    //   sorting: [
+    //     {
+    //       id: "createdAt",
+    //       desc: true,
+    //     },
+    //   ],
+    // },
   });
 
   return (
