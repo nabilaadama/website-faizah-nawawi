@@ -1,13 +1,13 @@
-export default function RootLayout({
+export default function ShopLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        <main>{children}</main>
-      </body>
-    </html>
+    <div className="shop-layout">
+      <header className="shop-header">{/* Shop navigation */}</header>
+      <main className="shop-main">{children}</main>
+      <footer className="shop-footer">{/* Shop footer */}</footer>
+    </div>
   );
 }
