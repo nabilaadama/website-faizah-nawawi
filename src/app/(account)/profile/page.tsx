@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '@/lib/firebase/firebase-config';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { onAuthStateChanged, signOut, updateEmail } from 'firebase/auth';
+import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { onAuthStateChanged, signOut, updateEmail, deleteUser, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 
 interface Address {
   id: string;
@@ -43,6 +43,12 @@ export default function ProfilePage() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
+  
+  // New states for double confirmation delete account flow
+  const [showDeleteAccountConfirmModal, setShowDeleteAccountConfirmModal] = useState(false);
+  const [showDeleteAccountPasswordModal, setShowDeleteAccountPasswordModal] = useState(false);
+  const [deleteAccountPassword, setDeleteAccountPassword] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -205,6 +211,60 @@ export default function ProfilePage() {
     }
   };
 
+  // New function to handle initial delete account confirmation
+  const handleInitialDeleteAccountConfirm = () => {
+    setShowDeleteAccountConfirmModal(false);
+    setShowDeleteAccountPasswordModal(true);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deleteAccountPassword.trim()) {
+      setError('Mohon masukkan password untuk konfirmasi');
+      return;
+    }
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const user = auth.currentUser;
+      if (!user || !user.email) {
+        throw new Error('User not authenticated');
+      }
+
+      // Re-authenticate user before deleting account
+      const credential = EmailAuthProvider.credential(user.email, deleteAccountPassword);
+      await reauthenticateWithCredential(user, credential);
+
+      // Delete user document from Firestore
+      if (userId) {
+        await deleteDoc(doc(db, 'users', userId));
+      }
+
+      // Delete user account from Firebase Auth
+      await deleteUser(user);
+
+      // Redirect to home page
+      window.location.href = '/';
+      
+    } catch (err: any) {
+      console.error('Error deleting account:', err);
+      let errorMessage = 'Gagal menghapus akun. Silakan coba lagi.';
+      
+      if (err.code === 'auth/wrong-password') {
+        errorMessage = 'Password yang dimasukkan salah.';
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMessage = 'Terlalu banyak percobaan. Silakan coba lagi nanti.';
+      } else if (err.code === 'auth/requires-recent-login') {
+        errorMessage = 'Silakan logout dan login kembali sebelum menghapus akun.';
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const cancelAddAddress = () => {
     setShowAddAddressForm(false);
     setEditingAddressId(null);
@@ -218,6 +278,18 @@ export default function ProfilePage() {
       isDefault: false,
     });
     setError(null);
+  };
+
+  // Updated cancel function for delete account
+  const cancelDeleteAccount = () => {
+    setShowDeleteAccountPasswordModal(false);
+    setDeleteAccountPassword('');
+    setError(null);
+  };
+
+  // New cancel function for initial confirmation
+  const cancelDeleteAccountConfirm = () => {
+    setShowDeleteAccountConfirmModal(false);
   };
 
   return (
@@ -311,7 +383,7 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4">Belum ada alamat yang tersimpan</p>
+                <p className="text-gray-500 text-center py-4">No address stored yet</p>
               )}
 
               {/* Add/Edit Address Form */}
@@ -469,7 +541,10 @@ export default function ProfilePage() {
               >
                 Log me out
               </button>
-              <button className="h-[45px] bg-yellow-400 text-white py-3 rounded-[18px] font-semibold hover:bg-yellow-500 shadow-md transition">
+              <button 
+                onClick={() => setShowDeleteAccountConfirmModal(true)}
+                className="h-[45px] bg-red-500 text-white py-3 rounded-[18px] font-semibold hover:bg-red-600 shadow-md transition"
+              >
                 Delete Account
               </button>
             </div>
@@ -486,8 +561,8 @@ export default function ProfilePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-lg font-bold mb-2 text-black">Berhasil!</h2>
-            <p className="text-sm mb-6 text-gray-700">Perubahan berhasil disimpan.</p>
+            <h2 className="text-lg font-bold mb-2 text-black">Successful!</h2>
+            <p className="text-sm mb-6 text-gray-700">Changes are saved successfully.</p>
             <button
               onClick={() => setShowSuccessModal(false)}
               className="px-6 py-2 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 transition"
@@ -502,14 +577,14 @@ export default function ProfilePage() {
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-8 flex flex-col items-center justify-center text-center">
-            <h2 className="text-lg font-bold mb-4 text-black">Konfirmasi Logout</h2>
-            <p className="text-sm mb-6 text-gray-700">Apakah Anda yakin ingin logout dari akun ini?</p>
+            <h2 className="text-lg font-bold mb-4 text-black">Logout Confirmation</h2>
+            <p className="text-sm mb-6 text-gray-700">Are you sure you want to log out of this account?</p>
             <div className="flex gap-4">
               <button
                 onClick={() => setShowLogoutModal(false)}
                 className="px-4 py-2 text-sm bg-gray-200 rounded-md hover:bg-gray-300"
               >
-                Batal
+                Cancel
               </button>
               <button
                 onClick={handleLogout}
@@ -527,20 +602,125 @@ export default function ProfilePage() {
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-8 flex flex-col items-center justify-center text-center">
-            <h2 className="text-lg font-bold mb-4 text-black">Konfirmasi Hapus</h2>
-            <p className="text-sm mb-6 text-gray-700">Apakah Anda yakin ingin menghapus alamat ini?</p>
+            <h2 className="text-lg font-bold mb-4 text-black">Confirm Delete</h2>
+            <p className="text-sm mb-6 text-gray-700">Are you sure you want to delete this address?</p>
             <div className="flex gap-4">
               <button
                 onClick={() => setShowDeleteModal(null)}
                 className="px-4 py-2 text-sm bg-gray-200 rounded-md hover:bg-gray-300"
               >
-                Batal
+                Cancel
               </button>
               <button
                 onClick={() => handleDeleteAddress(showDeleteModal)}
                 className="px-4 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600"
               >
-                Hapus
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NEW: Initial Delete Account Confirmation Modal */}
+      {showDeleteAccountConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-8">
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold mb-4 text-red-600">Confirm Delete Account</h2>
+              <div className="text-left space-y-3 mb-6">
+                <p className="text-sm text-gray-700">
+                  <strong>Attention!</strong> You will permanently delete your account.
+                </p>
+                <div className="bg-red-50 p-3 rounded-lg">
+                  <p className="text-sm text-red-800 font-medium mb-2">Consequences of account deletion:</p>
+                  <ul className="text-xs text-red-700 space-y-1 list-disc list-inside">
+                    <li>All personal data will be permanently deleted</li>
+                    <li>Order history will be lost</li>
+                    <li>Saved addresses will be deleted</li>
+                    <li>Accounts cannot be recovered</li>
+                  </ul>
+                </div>
+                <p className="text-sm text-gray-700">
+                  Are you really sure you want to continue?
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={cancelDeleteAccountConfirm}
+                className="flex-1 px-4 py-3 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 font-medium"
+              >
+                No, Cancel
+              </button>
+              <button
+                onClick={handleInitialDeleteAccountConfirm}
+                className="flex-1 px-4 py-3 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 font-medium"
+              >
+                Yes, Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* UPDATED: Delete Account Password Confirmation Modal */}
+      {showDeleteAccountPasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-8">
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h2 className="text-lg font-bold mb-2 text-black">Password Verification</h2>
+              <p className="text-sm mb-4 text-gray-700">
+                Enter your password for final confirmation of account deletion
+              </p>
+            </div>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2 text-black">
+                Your password:
+              </label>
+              <input
+                type="password"
+                value={deleteAccountPassword}
+                onChange={(e) => setDeleteAccountPassword(e.target.value)}
+                placeholder="Masukkan password"
+                className="w-full h-[40px] text-sm px-3 p-2 border-2 rounded-md focus:border-red-500 focus:outline-none"
+                disabled={isDeleting}
+                autoFocus
+              />
+            </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="flex gap-4">
+              <button
+                onClick={cancelDeleteAccount}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeleting || !deleteAccountPassword.trim()}
+                className="flex-1 px-4 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeleting ? 'Menghapus...' : 'Delete Account'}
               </button>
             </div>
           </div>
