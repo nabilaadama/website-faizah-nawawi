@@ -72,7 +72,7 @@ export default function PaymentConfirmation() {
         
         setOrder(orderData);
         
-        if (orderData.paymentStatus === 'paid') {
+        if (orderData.paymentStatus === 'paid' || orderData.paymentStatus === 'payment_verification') {
           toast.success('Payment has been confirmed');
           router.push('/orders');
         }
