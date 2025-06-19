@@ -248,7 +248,7 @@ const UserManagementPage: React.FC = () => {
   });
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box sx={{ padding: "24px" }}>
       <Box
         sx={{
           display: "flex",
@@ -271,6 +271,13 @@ const UserManagementPage: React.FC = () => {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
+          sx={{
+            backgroundColor: "black",
+            color: "white",
+            "&:hover": {
+              backgroundColor: "#333",
+            },
+          }}
         >
           Add User
         </Button>

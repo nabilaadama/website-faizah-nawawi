@@ -4,7 +4,6 @@ import React, { useMemo, useState } from "react";
 import {
   MaterialReactTable,
   type MRT_ColumnDef,
-  type MRT_Row,
   useMaterialReactTable,
 } from "material-react-table";
 import {
@@ -63,12 +62,12 @@ export const BankAccountTable: React.FC<BankAccountTableProps> = ({
       {
         accessorKey: "bankName",
         header: "Bank Name",
-        size: 200,
+        size: 50,
       },
       {
         accessorKey: "accountNumber",
         header: "Account Number",
-        size: 250,
+        size: 150,
         Cell: ({ cell }) => (
           <Typography variant="body2" fontFamily="monospace">
             {cell.getValue<string>()}
@@ -78,12 +77,12 @@ export const BankAccountTable: React.FC<BankAccountTableProps> = ({
       {
         accessorKey: "accountHolder",
         header: "Account Holder",
-        size: 250,
+        size: 200,
       },
       {
         accessorKey: "isActive",
         header: "Status",
-        size: 150,
+        size: 100,
         Cell: ({ cell }) => (
           <Chip
             label={cell.getValue<boolean>() ? "Active" : "Inactive"}
@@ -95,7 +94,7 @@ export const BankAccountTable: React.FC<BankAccountTableProps> = ({
       {
         accessorKey: "createdAt",
         header: "Created At",
-        size: 150,
+        size: 80,
         Cell: ({ cell }) => {
           const date = cell.getValue<Date>();
           return date.toLocaleDateString("id-ID", {
@@ -108,7 +107,7 @@ export const BankAccountTable: React.FC<BankAccountTableProps> = ({
       {
         accessorKey: "updatedAt",
         header: "Updated At",
-        size: 150,
+        size: 80,
         Cell: ({ cell }) => {
           const date = cell.getValue<Date>();
           return date.toLocaleDateString("id-ID", {
@@ -121,12 +120,6 @@ export const BankAccountTable: React.FC<BankAccountTableProps> = ({
     ],
     []
   );
-
-  const handleCreate = () => {
-    setFormMode("create");
-    setSelectedAccount(null);
-    setFormOpen(true);
-  };
 
   const handleEdit = (account: BankAccount) => {
     setFormMode("edit");
@@ -200,32 +193,6 @@ export const BankAccountTable: React.FC<BankAccountTableProps> = ({
         </Tooltip>
       </Box>
     ),
-    // renderTopToolbarCustomActions: () => (
-    //   <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
-    //     <Button
-    //       variant="contained"
-    //       startIcon={<AddIcon />}
-    //       onClick={handleCreate}
-    //     >
-    //       Add Bank Account
-    //     </Button>
-    //     <Button variant="outlined" onClick={onRefresh}>
-    //       Refresh
-    //     </Button>
-    //   </Box>
-    // ),
-    // initialState: {
-    //   pagination: {
-    //     pageSize: 10,
-    //     pageIndex: 0,
-    //   },
-    //   sorting: [
-    //     {
-    //       id: "createdAt",
-    //       desc: true,
-    //     },
-    //   ],
-    // },
   });
 
   return (
