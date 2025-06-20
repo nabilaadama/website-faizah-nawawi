@@ -1,8 +1,18 @@
 "use client";
 
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
-import { useRouter } from "next/navigation";
-import { addDoc, collection, getDocs, updateDoc } from "firebase/firestore";
+import { useRouter, useParams } from "next/navigation";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  collection,
+  getDocs,
+  addDoc,
+  query,
+  where,
+  deleteDoc,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase-config";
 import slugify from "@/lib/utils/slugify";
 import { ProductImage } from "@/core/entities/product";
@@ -25,6 +35,7 @@ interface ImageData {
 }
 
 interface ProductVariantForm {
+  id?: string; // For existing variants
   size: string;
   color: string;
   price: number;
@@ -40,8 +51,11 @@ const AVAILABLE_IMAGES = [
   "/images/sailor-dress.jpg",
 ];
 
-export default function AddProductPage() {
+export default function EditProductPage() {
   const router = useRouter();
+  const params = useParams();
+  const productId = (params?.id ?? "") as string;
+
   const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
@@ -56,38 +70,82 @@ export default function AddProductPage() {
   const [customImageUrl, setCustomImageUrl] = useState<string>("");
   const [variants, setVariants] = useState<ProductVariantForm[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>(
     []
   );
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Fetch categories on component mount
+  // Fetch product data and categories on component mount
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "categories"));
-        const categoriesData = querySnapshot.docs.map((doc) => ({
+        setIsLoading(true);
+
+        // Fetch categories
+        const categoriesSnapshot = await getDocs(collection(db, "categories"));
+        const categoriesData = categoriesSnapshot.docs.map((doc) => ({
           id: doc.id,
           name: doc.data().name,
         }));
         setCategories(categoriesData);
 
-        // Set default category if available
-        if (categoriesData.length > 0) {
-          setFormData((prev) => ({
-            ...prev,
-            categoryId: categoriesData[0].id,
-          }));
+        // Fetch product data
+        const productDoc = await getDoc(doc(db, "products", productId));
+        if (!productDoc.exists()) {
+          throw new Error("Product not found");
         }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-        setError("Gagal mengambil data kategori");
+
+        const productData = productDoc.data();
+
+        // Set form data
+        setFormData({
+          name: productData.name || "",
+          description: productData.description || "",
+          basePrice: productData.basePrice || 0,
+          stock: productData.stock || 0,
+          categoryId: productData.categoryId || "",
+          featured: productData.featured || false,
+          available: productData.available || true,
+        });
+
+        // Set images
+        if (productData.images && Array.isArray(productData.images)) {
+          const imageData: ImageData[] = productData.images.map((img: any) => ({
+            url: img.url,
+            isPrimary: img.isPrimary || false,
+            alt: img.alt || "",
+          }));
+          setSelectedImages(imageData);
+        }
+
+        // Fetch variants
+        const variantsQuery = query(
+          collection(db, "productVariants"),
+          where("productId", "==", productId)
+        );
+        const variantsSnapshot = await getDocs(variantsQuery);
+        const variantsData = variantsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          size: doc.data().size || "",
+          color: doc.data().color || "",
+          price: doc.data().price || 0,
+          stock: doc.data().stock || 0,
+        }));
+        setVariants(variantsData);
+      } catch (error: any) {
+        console.error("Error fetching product data:", error);
+        setError(error.message || "Failed to load product data");
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchCategories();
-  }, []);
+    if (productId) {
+      fetchData();
+    }
+  }, [productId]);
 
   // Handle form input changes
   const handleInputChange = (
@@ -117,8 +175,8 @@ export default function AddProductPage() {
     } else {
       const newImage: ImageData = {
         url: imageUrl,
-        isPrimary: selectedImages.length === 0, 
-        alt: imageUrl.split("/").pop()?.split(".")[0] || "product image", 
+        isPrimary: selectedImages.length === 0,
+        alt: imageUrl.split("/").pop()?.split(".")[0] || "product image",
       };
 
       setSelectedImages((prev) => [...prev, newImage]);
@@ -141,7 +199,7 @@ export default function AddProductPage() {
       };
 
       setSelectedImages((prev) => [...prev, newImage]);
-      setCustomImageUrl(""); // Reset input
+      setCustomImageUrl("");
     } else {
       setError("Gambar ini sudah dipilih");
       setTimeout(() => setError(null), 3000);
@@ -163,13 +221,11 @@ export default function AddProductPage() {
     setSelectedImages((prev) => {
       const newImages = [...prev];
 
-      // If removing the primary image, set a new primary if possible
       if (newImages[index].isPrimary && newImages.length > 1) {
         const newPrimaryIndex = index === 0 ? 1 : 0;
         newImages[newPrimaryIndex].isPrimary = true;
       }
 
-      // Remove the image
       newImages.splice(index, 1);
       return newImages;
     });
@@ -209,7 +265,20 @@ export default function AddProductPage() {
   };
 
   // Save product variants
-  const saveVariants = async (productId: string) => {
+  const saveVariants = async () => {
+    // Delete existing variants
+    const existingVariantsQuery = query(
+      collection(db, "productVariants"),
+      where("productId", "==", productId)
+    );
+    const existingVariantsSnapshot = await getDocs(existingVariantsQuery);
+
+    const deletePromises = existingVariantsSnapshot.docs.map((doc) =>
+      deleteDoc(doc.ref)
+    );
+    await Promise.all(deletePromises);
+
+    // Add new variants
     const variantPromises = variants.map(async (variant) => {
       const variantData = {
         productId,
@@ -261,7 +330,7 @@ export default function AddProductPage() {
         createdAt: new Date(),
       }));
 
-      // Create product document
+      // Update product document
       const productData = {
         name: formData.name,
         slug,
@@ -273,51 +342,50 @@ export default function AddProductPage() {
         featured: formData.featured,
         available: formData.available,
         images: images,
-        createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      // Add to Firestore
-      const docRef = await addDoc(collection(db, "products"), productData);
-      const productId = docRef.id;
+      // Update in Firestore
+      await updateDoc(doc(db, "products", productId), productData);
 
       // Save variants if any
       if (variants.length > 0) {
-        await saveVariants(productId);
+        await saveVariants();
       }
 
-      setSuccess("Produk berhasil ditambahkan!");
-
-      // Reset form after success
-      setFormData({
-        name: "",
-        description: "",
-        basePrice: 0,
-        stock: 0,
-        categoryId: categories[0]?.id || "",
-        featured: false,
-        available: true,
-      });
-
-      setSelectedImages([]);
-      setVariants([]);
+      setSuccess("Produk berhasil diperbarui!");
 
       // Redirect to product list after short delay
       setTimeout(() => {
         router.push("/admin/products");
       }, 2000);
     } catch (error: any) {
-      console.error("Error adding product:", error);
-      setError(error.message || "Gagal menambahkan produk");
+      console.error("Error updating product:", error);
+      setError(error.message || "Gagal memperbarui produk");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading product data...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="bg-white shadow-md rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-6">Tambah Produk Baru</h1>
+        <h1 className="text-2xl font-bold mb-6">Edit Produk</h1>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -711,7 +779,7 @@ export default function AddProductPage() {
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Menyimpan..." : "Simpan Produk"}
+              {isSubmitting ? "Menyimpan..." : "Update Produk"}
             </button>
           </div>
         </form>
