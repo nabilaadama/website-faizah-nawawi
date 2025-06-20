@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { collection, query, where, orderBy, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/firebase-config";
@@ -257,15 +258,19 @@ export default function OrderPage() {
           <div className="flex flex-wrap gap-4">
             {order.items.map((item) => (
               <div key={item.id || item.productId} className="w-[150px]">
-                <img 
-                  src={item.productImage} 
-                  alt={item.productName} 
-                  className="w-full h-auto rounded"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "/placeholder-image.png";
-                  }}
-                />
+                <div className="relative w-full h-[150px] rounded overflow-hidden">
+                  <Image 
+                    src={item.productImage || "/placeholder-image.png"} 
+                    alt={item.productName}
+                    fill
+                    sizes="150px"
+                    className="object-cover"
+                    onError={() => {
+                      // Handle error by showing placeholder
+                      console.log(`Failed to load image: ${item.productImage}`);
+                    }}
+                  />
+                </div>
                 <p className="text-sm mt-1 font-medium">{item.productName}</p>
                 {item.size && <p className="text-xs">Size: {item.size}</p>}
                 {item.color && <p className="text-xs">Color: {item.color}</p>}

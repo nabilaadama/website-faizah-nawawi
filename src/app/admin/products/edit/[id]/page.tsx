@@ -16,6 +16,7 @@ import {
 import { db } from "@/lib/firebase/firebase-config";
 import slugify from "@/lib/utils/slugify";
 import { ProductImage } from "@/core/entities/product";
+import Image from "next/image";
 
 // Type untuk form input
 interface FormData {
@@ -545,10 +546,13 @@ export default function EditProductPage() {
                         isSelected ? "ring-2 ring-indigo-500" : ""
                       }`}
                     >
-                      <img
-                        src={imageUrl}
-                        alt={`Product ${index + 1}`}
-                        className="w-full h-24 object-cover"
+                      <Image
+                      src={imageUrl}
+                      alt={`Product ${index + 1}`}
+                      width={0}
+                      height={96}
+                      sizes="100vw"
+                      className="w-full h-24 object-cover"
                       />
                       {isSelected && (
                         <div className="absolute top-1 right-1 bg-indigo-500 rounded-full p-1">
@@ -608,10 +612,13 @@ export default function EditProductPage() {
                         img.isPrimary ? "ring-2 ring-indigo-500" : ""
                       }`}
                     >
-                      <img
-                        src={img.url}
-                        alt="Preview"
-                        className="w-full h-40 object-cover rounded"
+                      <Image
+                      src={img.url}
+                      alt="Preview"
+                      width={0}
+                      height={160}
+                      sizes="100vw"
+                      className="w-full h-40 object-cover rounded"
                       />
 
                       <div className="mt-2">

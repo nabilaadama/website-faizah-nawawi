@@ -9,6 +9,7 @@ import { toast } from 'react-hot-toast';
 import { Order } from "@/core/entities/order";
 import { PaymentDetails } from "@/core/entities/payment-details";
 import { BankAccount } from "@/core/entities/bank-account";
+import Image from "next/image";
 
 interface PaymentFormData {
   senderName: string;
@@ -513,13 +514,15 @@ export default function PaymentConfirmation() {
                       <div className="text-sm text-gray-600">{bankAccount.accountHolder}</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <img 
-                        src={`/assets/${bankAccount.bankName.toLowerCase()}.png`} 
-                        alt={bankAccount.bankName} 
-                        className="h-6" 
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
+                      <Image
+                      src={`/assets/${bankAccount.bankName.toLowerCase()}.png`}
+                      alt={bankAccount.bankName}
+                      width={24}
+                      height={24}
+                      className="h-6"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
                       />
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                         selectedBankAccount?.id === bankAccount.id

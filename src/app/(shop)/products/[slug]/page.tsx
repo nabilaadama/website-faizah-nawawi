@@ -7,10 +7,11 @@ import { db } from '@/lib/firebase/firebase-config';
 import { Product, ProductImage, ProductVariant, Category } from '@/core/entities/product';
 import Header from "@/components/header";
 import Footer from "@/components/footer";
-import { Star, Info, ShoppingCart, MessageCircle } from 'lucide-react';
+import { Info, ShoppingCart, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { toast } from 'react-hot-toast';
+import Image from 'next/image';
 
 interface ProductWithDetails extends Product {
   variants?: ProductVariant[];
@@ -347,10 +348,11 @@ export default function ProductDetails() {
               {/* Main Image */}
               <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                 {selectedImage ? (
-                  <img 
-                    src={selectedImage.url} 
-                    alt={selectedImage.alt || product.name}
-                    className="w-full h-full object-cover"
+                  <Image
+                  src={selectedImage.url}
+                  alt={selectedImage.alt || product.name}
+                  fill
+                  className="object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200">
@@ -368,10 +370,11 @@ export default function ProductDetails() {
                       onClick={() => setSelectedImage(image)}
                       className={`aspect-square rounded-md overflow-hidden border-2 ${selectedImage?.url === image.url ? 'border-blue-500' : 'border-transparent'}`}
                     >
-                      <img 
-                        src={image.url} 
-                        alt={image.alt || `${product.name} thumbnail`}
-                        className="w-full h-full object-cover"
+                      <Image
+                      src={image.url}
+                      alt={image.alt || `${product.name} thumbnail`}
+                      fill
+                      className="object-cover"
                       />
                     </button>
                   ))}

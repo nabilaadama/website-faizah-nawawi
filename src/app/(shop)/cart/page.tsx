@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase/firebase-config';
 import { onAuthStateChanged } from 'firebase/auth';
+import Image from 'next/image';
 
 export default function CartPage() {
   const {
@@ -167,11 +168,13 @@ export default function CartPage() {
                         {/* Product Image */}
                         <div className="w-full sm:w-24 h-24 bg-gray-100 rounded-md overflow-hidden">
                           {item.image ? (
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                            />
+                            <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover"
+                          />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-200">
                               <span className="text-gray-500">No image</span>

@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from '@/lib/firebase/firebase-config';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import Image from "next/image";
 
 export default function Signin() {
   const router = useRouter();
@@ -97,12 +98,15 @@ export default function Signin() {
 
       {/* Right Side: Image with overlay */}
       <div className="w-1/2 relative flex items-center justify-center bg-gray-100">
-        <img
+        <Image
           src="/assets/signinsignup1.png"
           alt="Fashion Show"
-          className="w-full h-full max-h-screen object-cover shadow-lg"
+          fill
+          sizes="50vw"
+          className="object-cover shadow-lg"
+          priority
         />
-        <div className="absolute inset-0 bg-black bg-opacity-30" />
+        <div className="absolute inset-0 bg-black bg-opacity-30 z-10" />
       </div>
     </div>
   );

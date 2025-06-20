@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
-  Users,
   User,
   Package,
   Menu,
@@ -18,6 +17,7 @@ import {
   ListOrdered,
   Boxes,
 } from "lucide-react";
+import Image from "next/image";
 
 interface SidebarItem {
   label: string;
@@ -107,10 +107,13 @@ const Sidebar: React.FC = () => {
         <div>
           <div className="p-4 flex items-center justify-between">
             {isOpen && (
-              <img
-                src="/assets/logosamping.png"
-                alt="Admin Panel Logo"
-                className="h-12 w-auto mx-auto"
+              <Image
+              src="/assets/logosamping.png"
+              alt="Admin Panel Logo"
+              width={0}
+              height={48}
+              sizes="100vw"
+              className="h-12 w-auto mx-auto"
               />
             )}
             <button
