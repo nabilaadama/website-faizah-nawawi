@@ -200,6 +200,37 @@ const AdminBookingsPage = () => {
     }
   };
 
+  const openWhatsApp = (phoneNumber: string, orderNumber: string) => { 
+    if (!phoneNumber) {
+      alert('Nomor telepon tidak tersedia');
+      return;
+    }
+
+    let cleanPhone = phoneNumber.replace(/\D/g, '');
+    
+    if (cleanPhone.startsWith('0')) {
+      cleanPhone = '62' + cleanPhone.substring(1);
+    } else if (cleanPhone.startsWith('8')) {
+      cleanPhone = '62' + cleanPhone;
+    } else if (!cleanPhone.startsWith('62')) {
+      cleanPhone = '62' + cleanPhone;
+    }
+
+    if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+      alert('Format nomor telepon tidak valid');
+      return;
+    }
+
+    const message = `Halo, saya dari tim customer service. Terkait pesanan Anda dengan nomor ${orderNumber}, apakah ada yang bisa kami bantu?`;
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    
+    console.log('Original phone:', phoneNumber);
+    console.log('Cleaned phone:', cleanPhone);
+    console.log('WhatsApp URL:', whatsappUrl);
+    
+    window.open(whatsappUrl, '_blank');
+  };
+
   const handleDeleteBooking = async (row: MRT_Row<Booking>) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus booking ini?')) {
       const result = await deleteBooking(row.original.id);
