@@ -8,13 +8,19 @@ import {
   Paper,
   Alert,
   Snackbar,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
 } from "@mui/material";
 import { BankAccountTable } from "@/presentation/components/admin/bank-account-table";
+import { BankAccountForm } from "@/presentation/components/admin/bank-account-form";
 import {
   BankAccount,
   CreateBankAccountRequest,
   UpdateBankAccountRequest,
 } from "@/core/entities/bank-account";
+import { Add } from "@mui/icons-material";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -31,6 +37,7 @@ export default function BankAccountsPage() {
     message: "",
     severity: "success" as "success" | "error",
   });
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const showSnackbar = (
     message: string,
@@ -66,7 +73,7 @@ export default function BankAccountsPage() {
     }
   };
 
-  const handleCreate = async (data: CreateBankAccountRequest) => {
+  const handleCreateSubmit = async (data: CreateBankAccountRequest) => {
     try {
       const response = await fetch("/api/admin/bank-accounts", {
         method: "POST",
@@ -86,6 +93,7 @@ export default function BankAccountsPage() {
         };
         setBankAccounts((prev) => [newAccount, ...prev]);
         showSnackbar("Bank account created successfully");
+        setCreateDialogOpen(false); // Tutup dialog setelah berhasil
       } else {
         throw new Error(result.error || "Failed to create bank account");
       }
@@ -204,14 +212,42 @@ export default function BankAccountsPage() {
   }, []);
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+    <Box sx={{ padding: "24px" }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            fontWeight: "bold",
+            color: "#5C4033",
+          }}
+        >
           Bank Account Management
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        {/* <Typography variant="body1" color="text.secondary">
           Manage bank accounts for payment processing
-        </Typography>
+        </Typography> */}
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => setCreateDialogOpen(true)}
+          sx={{
+            backgroundColor: "black",
+            color: "white",
+            "&:hover": {
+              backgroundColor: "#333",
+            },
+          }}
+        >
+          Add Bank Account
+        </Button>
       </Box>
 
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
@@ -219,12 +255,33 @@ export default function BankAccountsPage() {
           data={bankAccounts}
           loading={loading}
           onRefresh={fetchBankAccounts}
-          onCreate={handleCreate}
+          onCreate={handleCreateSubmit}
           onUpdate={handleUpdate}
           onDelete={handleDelete}
           onToggleStatus={handleToggleStatus}
         />
       </Paper>
+
+      <Dialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Add New Bank Account</DialogTitle>
+        <DialogContent>
+          <BankAccountForm
+            open={createDialogOpen}
+            onClose={() => setCreateDialogOpen(false)}
+            onSubmit={async (data, mode) => {
+              if (mode === "create") {
+                await handleCreateSubmit(data as CreateBankAccountRequest);
+              }
+            }}
+            mode="create"
+          />
+        </DialogContent>
+      </Dialog>
 
       <Snackbar
         open={snackbar.open}
@@ -240,6 +297,6 @@ export default function BankAccountsPage() {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 }

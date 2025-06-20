@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import React, { useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   Users,
@@ -17,7 +17,7 @@ import {
   CalendarCheck,
   ListOrdered,
   Boxes,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface SidebarItem {
   label: string;
@@ -29,45 +29,67 @@ interface SidebarItem {
 const iconSize = 20;
 
 const sidebarItems: SidebarItem[] = [
-  { label: 'Dashboard', link: '/admin', icon: <Home size={iconSize} /> },
+  { label: "Dashboard", link: "/admin", icon: <Home size={iconSize} /> },
   {
-    label: 'Manage data',
+    label: "Manage data",
     children: [
-      { label: 'User', link: '/admin/users', icon: <User size={iconSize} /> },
-      { label: 'Product', link: '/admin/products', icon: <Boxes size={iconSize} /> },
-      { label: 'Category', link: '/admin/products/category', icon: <ListOrdered size={iconSize} /> },
-      { label: 'Bank Account', link: '/admin/bank-account', icon: <Package size={iconSize} /> },
+      { label: "User", link: "/admin/users", icon: <User size={iconSize} /> },
+      {
+        label: "Product",
+        link: "/admin/products",
+        icon: <Boxes size={iconSize} />,
+      },
+      {
+        label: "Category",
+        link: "/admin/products/category",
+        icon: <ListOrdered size={iconSize} />,
+      },
+      {
+        label: "Bank Account",
+        link: "/admin/bank-accounts",
+        icon: <Package size={iconSize} />,
+      },
     ],
   },
   {
-    label: 'Manage Transaction',
+    label: "Manage Transaction",
     children: [
-      { label: 'Order', link: '/admin/order', icon: <ShoppingCart size={iconSize} /> },
-      { label: 'Booking Appointment', link: '/admin/bookingappoinment', icon: <CalendarCheck size={iconSize} /> },
+      {
+        label: "Order",
+        link: "/admin/order",
+        icon: <ShoppingCart size={iconSize} />,
+      },
+      {
+        label: "Booking Appointment",
+        link: "/admin/bookingappoinment",
+        icon: <CalendarCheck size={iconSize} />,
+      },
     ],
   },
-  { label: 'Profile Admin', link: '/admin/profile', icon: <User size={21} /> },
+  { label: "Profile Admin", link: "/admin/profile", icon: <User size={21} /> },
 ];
 
 const Sidebar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
-  const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({});
+  const [openDropdowns, setOpenDropdowns] = useState<{
+    [key: string]: boolean;
+  }>({});
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
   const toggleDropdown = (label: string) => {
-    setOpenDropdowns(prev => ({ ...prev, [label]: !prev[label] }));
+    setOpenDropdowns((prev) => ({ ...prev, [label]: !prev[label] }));
   };
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      router.push('/admin/login');
+      router.push("/admin/login");
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     } finally {
       setIsLoggingOut(false);
       setShowLogoutConfirm(false);

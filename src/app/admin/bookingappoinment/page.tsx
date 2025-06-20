@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from "react";
 import {
-  MRT_EditActionButtons,
   MaterialReactTable,
   type MRT_ColumnDef,
   type MRT_Row,
@@ -11,24 +10,18 @@ import {
 } from "material-react-table";
 import {
   Box,
-  Button,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   IconButton,
   Tooltip,
   Typography,
   Chip,
-  Select,
   MenuItem,
-  FormControl,
-  InputLabel,
   Alert,
   Snackbar,
 } from "@mui/material";
 import { Delete, Edit, Refresh } from "@mui/icons-material";
 import { Booking } from "@/core/entities/booking";
 import { useBookings } from "@/presentation/hooks/admin/use-booking";
+import { MessageCircle } from "lucide-react";
 
 const AdminBookingsPage = () => {
   const {
@@ -218,17 +211,6 @@ const AdminBookingsPage = () => {
       }
     }
   };
-
-  const handleQuickStatusUpdate = async (bookingId: string, newStatus: Booking['status']) => {
-    const result = await updateBookingStatus(bookingId, newStatus);
-    
-    if (result.success) {
-      showSnackbar(`Status berhasil diubah ke ${bookingService.getStatusLabel(newStatus)}`, 'success');
-    } else {
-      showSnackbar(result.error || 'Gagal mengubah status', 'error');
-    }
-  };
-
   const table = useMaterialReactTable({
     columns,
     data: bookings,
@@ -270,6 +252,15 @@ const AdminBookingsPage = () => {
             size="small"
           >
             <Delete />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Contact via WhatsApp">
+          <IconButton
+            onClick={() => openWhatsApp(row.original.whatsapp, row.original.appointmentDate.toLocaleString())}
+            size="small"
+            sx={{ color: '#25d366' }}
+          >
+            <MessageCircle size={16} />
           </IconButton>
         </Tooltip>
       </Box>
@@ -343,7 +334,7 @@ const AdminBookingsPage = () => {
   });
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box sx={{ padding: "24px" }}>
       <Box
         sx={{
           display: "flex",

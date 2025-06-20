@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase-config';
-import { Product, ProductImage, ProductVariant, Category, Review } from '@/core/entities/product';
+import { Product, ProductImage, ProductVariant, Category } from '@/core/entities/product';
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { Star, Info, ShoppingCart, MessageCircle } from 'lucide-react';
@@ -15,7 +15,6 @@ import { toast } from 'react-hot-toast';
 interface ProductWithDetails extends Product {
   variants?: ProductVariant[];
   category?: Category;
-  reviews?: Review[];
 }
 
 export default function ProductDetails() {
@@ -112,26 +111,7 @@ export default function ProductDetails() {
           };
         }
       }
-      
-      // Fetch approved reviews
-      let reviews: Review[] = [];
-      const reviewsQuery = query(
-        collection(db, "reviews"), 
-        where("productId", "==", docSnap.id),
-        where("status", "==", "approved")
-      );
-      const reviewsSnapshot = await getDocs(reviewsQuery);
-      reviews = reviewsSnapshot.docs.map(reviewDoc => ({
-        id: reviewDoc.id,
-        productId: reviewDoc.data().productId,
-        userId: reviewDoc.data().userId,
-        userName: reviewDoc.data().userName,
-        rating: reviewDoc.data().rating,
-        comment: reviewDoc.data().comment,
-        status: reviewDoc.data().status,
-        createdAt: reviewDoc.data().createdAt?.toDate() || new Date(),
-        updatedAt: reviewDoc.data().updatedAt?.toDate() || new Date(),
-      }));
+    
       
       return {
         id: docSnap.id,
@@ -148,7 +128,6 @@ export default function ProductDetails() {
         available: data.available !== undefined ? data.available : true,
         createdAt: data.createdAt?.toDate() || new Date(),
         updatedAt: data.updatedAt?.toDate() || new Date(),
-        reviews: reviews,
         category: category
       };
     };
@@ -227,10 +206,6 @@ export default function ProductDetails() {
     setSelectedVariant(variant);
     setQuantity(1);
   };
-
-  const averageRating = product?.reviews && product.reviews.length > 0 
-    ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length 
-    : 0;
 
   if (isLoading) {
     return (
@@ -415,23 +390,6 @@ export default function ProductDetails() {
                     Category: <Link href={`/categories/${product.category.slug}`} className="text-blue-600 hover:underline">
                       {product.category.name}
                     </Link>
-                  </div>
-                )}
-                
-                {/* Rating Display */}
-                {product.reviews && product.reviews.length > 0 && (
-                  <div className="flex items-center space-x-2">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i}
-                          className={`w-4 h-4 ${i < Math.round(averageRating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600">
-                      {averageRating.toFixed(1)} ({product.reviews.length} review{product.reviews.length !== 1 ? 's' : ''})
-                    </span>
                   </div>
                 )}
               </div>
@@ -648,69 +606,8 @@ export default function ProductDetails() {
               </div>   
             </div>
           </div>
-          
-          {/* Product Details and Reviews */}
-          <div className="border-t border-gray-200 p-4 md:p-6">
-            <div className="max-w-3xl mx-auto space-y-8">
-              
-              {/* Reviews Section */}
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-4">CUSTOMER REVIEWS</h2>
-                
-                {product.reviews && product.reviews.length > 0 ? (
-                  <div className="space-y-6">
-                    {/* Review Summary */}
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star 
-                              key={i}
-                              className={`w-5 h-5 ${i < Math.round(averageRating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-lg font-medium">{averageRating.toFixed(1)} out of 5</span>
-                        <span className="text-gray-600">({product.reviews.length} review{product.reviews.length !== 1 ? 's' : ''})</span>
-                      </div>
-                    </div>
-                    
-                    {/* Individual Reviews */}
-                    {product.reviews.map((review) => (
-                      <div key={review.id} className="border-b border-gray-200 pb-6 last:border-0 last:pb-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="flex items-center">
-                              {[...Array(5)].map((_, i) => (
-                                <Star 
-                                  key={i}
-                                  className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
-                                />
-                              ))}
-                            </div>
-                            <span className="font-medium text-gray-900">{review.userName || 'Anonymous'}</span>
-                          </div>
-                          <span className="text-sm text-gray-500">
-                            {review.createdAt.toLocaleDateString()}
-                          </span>
-                        </div>
-                        {review.comment && (
-                          <p className="text-gray-700">{review.comment}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg text-center">
-                    <p className="text-gray-600">No reviews yet. Be the first to review this product!</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
-      
       <Footer />
     </div>
   );
