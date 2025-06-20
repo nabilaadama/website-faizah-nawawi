@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { User } from "../../core/entities/user";
 import { FirebaseAuthService } from "../../data/services/firebase-auth-service";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -22,7 +22,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const authService = new FirebaseAuthService();
+  const authService = useMemo(() => new FirebaseAuthService(), []);
 
   useEffect(() => {
     const auth = getAuth();

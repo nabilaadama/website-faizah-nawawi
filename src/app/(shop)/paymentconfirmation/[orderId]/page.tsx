@@ -40,12 +40,26 @@ export default function PaymentConfirmation() {
   });
 
   useEffect(() => {
+    const initializeData = async () => {
+      try {
+        await Promise.all([
+          fetchOrderData(),
+          fetchActiveBankAccounts()
+        ]);
+      } catch (error) {
+        console.error('Error initializing data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     if (orderId) {
       initializeData();
     } else {
       router.push('/');
     }
-  }, [orderId]);
+  }, [orderId, router]);
+
 
   const initializeData = async () => {
     try {

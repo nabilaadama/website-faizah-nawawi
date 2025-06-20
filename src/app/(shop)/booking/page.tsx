@@ -232,7 +232,7 @@ Mohon konfirmasi ketersediaan jadwal. Terima kasih!`;
                     </div>
                     <div className="ml-3">
                       <p className="text-sm font-medium text-green-800">
-                        Booking submitted successfully! We'll contact you shortly to confirm your appointment.
+                        Booking submitted successfully! We&apos;ll contact you shortly to confirm your appointment.
                       </p>
                     </div>
                   </div>

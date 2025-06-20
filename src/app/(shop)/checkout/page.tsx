@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { PhoneIcon, MapPinIcon, CreditCardIcon } from "@heroicons/react/24/outline";
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
@@ -50,16 +50,7 @@ export default function Checkout() {
   const subtotal = cart.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
   const totalAmount = subtotal;
 
-  useEffect(() => {
-    if (!user) {
-      router.push('/login?redirect=/checkout');
-      return;
-    }
-
-    initializeData();
-  }, [user, cart, router]);
-
-  const initializeData = async () => {
+  const initializeData = useCallback(async () => {
     try {
       await Promise.all([
         fetchUserData(),
@@ -71,7 +62,16 @@ export default function Checkout() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]); 
+
+  useEffect(() => {
+  if (!user) {
+    router.push('/login?redirect=/checkout');
+    return;
+  }
+
+  initializeData();
+}, [user, router, initializeData]);
 
   const fetchUserData = async () => {
     if (!user?.uid) return;
@@ -157,7 +157,7 @@ export default function Checkout() {
     setFormData(prev => ({
       ...prev,
       name: address.recipientName,
-      phoneNumber: address.phoneNumber || prev.phoneNumber, // Keep existing phone if address doesn't have one
+      phoneNumber: address.phoneNumber || prev.phoneNumber, 
       province: address.province,
       city: address.city,
       district: address.district,

@@ -438,7 +438,7 @@ const Dashboard = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#5C4033] mb-2">Dashboard</h1>
-          <p className="text-[#5C4033]">Faizah Nawawi's Website Management</p>
+          <p className="text-[#5C4033]">Faizah Nawawi&apos;s Website Management</p>
         </div>
 
         {/* Stats Grid */}

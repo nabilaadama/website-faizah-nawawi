@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -50,7 +50,7 @@ export default function BankAccountsPage() {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  const fetchBankAccounts = async () => {
+  const fetchBankAccounts = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/bank-accounts");
       const result: ApiResponse<BankAccount[]> = await response.json();
@@ -71,7 +71,7 @@ export default function BankAccountsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleCreateSubmit = async (data: CreateBankAccountRequest) => {
     try {
@@ -209,7 +209,7 @@ export default function BankAccountsPage() {
 
   useEffect(() => {
     fetchBankAccounts();
-  }, []);
+  }, [fetchBankAccounts]);
 
   return (
     <Box sx={{ padding: "24px" }}>

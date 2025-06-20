@@ -320,7 +320,7 @@ const OrderPage = () => {
         sortingFn: 'datetime',
       },
     ],
-    [updating]
+    [updating, statusOptions, paymentStatusOptions]
   );
 
   // MRT Table configuration

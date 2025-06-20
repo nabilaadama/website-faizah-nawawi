@@ -251,7 +251,7 @@ export default function ProductDetails() {
         <div className="container mx-auto px-4 py-20">
           <div className="bg-white p-6 rounded-lg shadow-sm text-center">
             <h3 className="text-lg font-medium text-gray-800 mb-2">Product Not Found</h3>
-            <p className="text-gray-600 mb-4">The product you're looking for doesn't exist.</p>
+            <p className="text-gray-600 mb-4">The product you&apos;re looking for doesn&apos;t exist.</p>
             <Link 
               href="/products"
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 inline-block"
