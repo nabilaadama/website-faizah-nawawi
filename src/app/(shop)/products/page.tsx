@@ -9,6 +9,7 @@ import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase-config';
 import Footer from '@/components/footer';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Catalog() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -360,10 +361,11 @@ export default function Catalog() {
                             
                             if (imageToShow) {
                               return (
-                                <img 
-                                  src={imageToShow.url} 
-                                  alt={imageToShow.alt || product.name}
-                                  className="w-full h-full object-cover"
+                                <Image
+                                src={imageToShow.url}
+                                alt={imageToShow.alt || product.name}
+                                fill
+                                className="object-cover"
                                 />
                               );
                             } else {

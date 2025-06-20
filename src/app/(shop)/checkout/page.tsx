@@ -12,6 +12,7 @@ import { Address } from '@/core/entities/address';
 import { BankAccount } from '@/core/entities/bank-account';
 import { Order, OrderItem } from "@/core/entities/order";
 import { User } from "@/core/entities/user";
+import Image from 'next/image';
 
 interface CheckoutFormData {
   name: string;
@@ -33,6 +34,7 @@ export default function Checkout() {
   const [defaultAddress, setDefaultAddress] = useState<Address | null>(null);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [shippingConfirmed, setShippingConfirmed] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   const [formData, setFormData] = useState<CheckoutFormData>({
     name: '',
@@ -427,15 +429,18 @@ export default function Checkout() {
                     <div key={bankAccount.id} className="border-2 p-4 rounded-md bg-gray-50">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
-                          <img 
-                            src={`/assets/${bankAccount.bankName.toLowerCase()}.png`} 
-                            alt={bankAccount.bankName} 
-                            className="w-20 h-auto mr-3" 
-                            onError={(e) => {
-                              // Fallback if image not found
-                              e.currentTarget.style.display = 'none';
+                          {!imageError && (
+                          <Image
+                            src={`/assets/${bankAccount.bankName.toLowerCase()}.png`}
+                            alt={bankAccount.bankName}
+                            width={80}
+                            height={60}
+                            className="w-20 h-auto mr-3"
+                            onError={() => {
+                              setImageError(true);
                             }}
                           />
+                        )}
                           <div>
                             <p className="font-semibold text-black">{bankAccount.bankName}</p>
                             <p className="text-sm text-gray-600">{bankAccount.accountNumber}</p>
@@ -468,7 +473,15 @@ export default function Checkout() {
               {cart.map((item: any) => (
                 <div key={`${item.productId}-${item.variantId || 'no-variant'}`} className="flex justify-between border-b pb-4">
                   <div className="flex gap-4">
-                    <img src={item.image || "/assets/placeholder.png"} alt={item.name} className="w-28 h-28 object-cover rounded-md" />
+                    <div className="relative w-28 h-28">
+                      <Image 
+                        src={item.image || "/assets/placeholder.png"} 
+                        alt={item.name} 
+                        fill
+                        sizes="112px"
+                        className="object-cover rounded-md" 
+                      />
+                    </div>
                     <div>
                       <h3 className="font-bold text-[15px] text-black">{item.name}</h3>
                       {item.variantDetails && (

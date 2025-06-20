@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createBooking } from "@/core/usecases/booking/create-booking";
-import { firebaseBookingRepository } from "@/data/repositories/firebase-booking-repository";
+import { FirebaseBookingRepository } from "@/data/repositories/firebase-booking-repository";
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
-    const booking = await createBooking(firebaseBookingRepository, {
+    const booking = await createBooking(new FirebaseBookingRepository(), {
       email,
       whatsapp,
       appointmentDate,

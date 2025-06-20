@@ -11,6 +11,7 @@ import {
   type MRT_Row,
 } from 'material-react-table';
 import { Box, MenuItem, Select, FormControl, IconButton, Tooltip } from '@mui/material';
+import Image from 'next/image';
 
 type OrderItem = {
   productImage: string;
@@ -526,10 +527,12 @@ const OrderPage = () => {
                       <div className="space-y-3">
                         {selectedOrder.items?.map((item, index) => (
                           <div key={index} className="flex items-center space-x-3 p-3 bg-white rounded-lg">
-                            <img
-                              src={item.productImage}
-                              alt={item.productName}
-                              className="w-12 h-12 object-cover rounded"
+                            <Image
+                            src={item.productImage}
+                            alt={item.productName}
+                            width={48}
+                            height={48}
+                            className="w-12 h-12 object-cover rounded"
                             />
                             <div className="flex-1">
                               <div className="font-medium text-sm">{item.productName}</div>
