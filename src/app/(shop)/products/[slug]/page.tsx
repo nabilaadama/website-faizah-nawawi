@@ -346,7 +346,7 @@ export default function ProductDetails() {
             {/* Product Images */}
             <div className="space-y-4">
               {/* Main Image */}
-              <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+              <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
                 {selectedImage ? (
                   <Image
                   src={selectedImage.url}

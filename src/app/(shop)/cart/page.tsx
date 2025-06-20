@@ -166,7 +166,7 @@ export default function CartPage() {
 
                       <div className="flex flex-col sm:flex-row gap-4 flex-grow">
                         {/* Product Image */}
-                        <div className="w-full sm:w-24 h-24 bg-gray-100 rounded-md overflow-hidden">
+                        <div className="relative w-full sm:w-24 h-24 bg-gray-100 rounded-md overflow-hidden">
                           {item.image ? (
                             <Image
                             src={item.image}
