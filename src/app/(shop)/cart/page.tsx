@@ -5,7 +5,7 @@ import Header from '@/components/header';
 import Footer from '@/components/footer';
 import Link from 'next/link';
 import { Minus, Plus, Trash2, Info } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase/firebase-config';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -15,13 +15,18 @@ export default function CartPage() {
     cartItems,
     removeFromCart,
     updateQuantity,
-    cartTotal,
-    itemCount,
     user,
     loading,
   } = useCart();
   
   const router = useRouter();
+  const [selectedItems, setSelectedItems] = useState(new Set());
+
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      setSelectedItems(new Set(cartItems.map(item => item.id)));
+    }
+  }, [cartItems]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -32,6 +37,32 @@ export default function CartPage() {
 
     return () => unsubscribe();
   }, [loading, router]);
+
+  const handleItemSelect = (itemId: string) => {
+    const newSelected = new Set(selectedItems);
+    if (newSelected.has(itemId)) {
+      newSelected.delete(itemId);
+    } else {
+      newSelected.add(itemId);
+    }
+    setSelectedItems(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.size === cartItems.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(cartItems.map(item => item.id)));
+    }
+  };
+
+  const selectedItemsTotal = cartItems
+    .filter(item => selectedItems.has(item.id))
+    .reduce((total, item) => total + (item.price * item.quantity), 0);
+
+  const selectedItemsCount = cartItems
+    .filter(item => selectedItems.has(item.id))
+    .reduce((count, item) => count + item.quantity, 0);
 
   if (loading) {
     return (
@@ -99,71 +130,103 @@ export default function CartPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
-            <div className="lg:col-span-2 space-y-4">
-              {cartItems.map(item => (
-                <div key={item.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    {/* Product Image */}
-                    <div className="w-full sm:w-24 h-24 bg-gray-100 rounded-md overflow-hidden">
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
+            <div className="lg:col-span-2">
+              {/* Select All Checkbox */}
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-4">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="select-all"
+                    checked={selectedItems.size === cartItems.length && cartItems.length > 0}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 text-[#FFC30C] bg-gray-100 border-gray-300 rounded focus:ring-[#FFC30C] focus:ring-2"
+                  />
+                  <label htmlFor="select-all" className="ml-2 text-sm font-medium text-gray-900">
+                    Select All Items ({cartItems.length})
+                  </label>
+                </div>
+              </div>
+
+              {/* Cart Items List */}
+              <div className="space-y-4">
+                {cartItems.map(item => (
+                  <div key={item.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <div className="flex gap-4">
+                      {/* Checkbox */}
+                      <div className="flex items-start pt-2">
+                        <input
+                          type="checkbox"
+                          id={`item-${item.id}`}
+                          checked={selectedItems.has(item.id)}
+                          onChange={() => handleItemSelect(item.id)}
+                          className="w-4 h-4 text-[#FFC30C] bg-gray-100 border-gray-300 rounded focus:ring-[#FFC30C] focus:ring-2"
                         />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                          <span className="text-gray-500">No image</span>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-4 flex-grow">
+                        {/* Product Image */}
+                        <div className="w-full sm:w-24 h-24 bg-gray-100 rounded-md overflow-hidden">
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                              <span className="text-gray-500">No image</span>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    
-                    {/* Product Info */}
-                    <div className="flex-grow">
-                      <h3 className="font-medium text-gray-900">{item.name}</h3>
-                      
-                      {/* Variant Info */}
-                      {item.variant && (
-                        <div className="text-sm text-gray-500 mt-1">
-                          {item.variant.color && <span>Color: {item.variant.color}</span>}
-                          {item.variant.size && <span className="ml-2">Size: {item.variant.size}</span>}
-                        </div>
-                      )}
-                      
-                      {/* Price */}
-                      <p className="font-semibold text-gray-900 mt-2">Rp{item.price.toLocaleString()}</p>
-                      
-                      {/* Quantity Controls */}
-                      <div className="flex items-center mt-4">
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="p-2 border border-gray-300 rounded-l-md hover:bg-gray-100"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="px-4 py-1 border-t border-b border-gray-300">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="p-2 border border-gray-300 rounded-r-md hover:bg-gray-100"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
                         
-                        {/* Remove Button */}
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="ml-4 text-red-500 hover:text-red-700 flex items-center"
-                        >
-                          <Trash2 className="w-4 h-4 mr-1" />
-                          <span className="text-sm">Remove</span>
-                        </button>
+                        {/* Product Info */}
+                        <div className="flex-grow">
+                          <h3 className="font-medium text-gray-900">{item.name}</h3>
+                          
+                          {/* Variant Info */}
+                          {item.variant && (
+                            <div className="text-sm text-gray-500 mt-1">
+                              {item.variant.color && <span>Color: {item.variant.color}</span>}
+                              {item.variant.size && <span className="ml-2">Size: {item.variant.size}</span>}
+                            </div>
+                          )}
+                          
+                          {/* Price */}
+                          <p className="font-semibold text-gray-900 mt-2">Rp{item.price.toLocaleString()}</p>
+                          
+                          {/* Quantity Controls */}
+                          <div className="flex items-center mt-4">
+                            <button
+                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              className="p-2 border border-gray-300 rounded-l-md hover:bg-gray-100"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="px-4 py-1 border-t border-b border-gray-300">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              className="p-2 border border-gray-300 rounded-r-md hover:bg-gray-100"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                            
+                            {/* Remove Button */}
+                            <button
+                              onClick={() => removeFromCart(item.id)}
+                              className="ml-4 text-red-500 hover:text-red-700 flex items-center"
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              <span className="text-sm">Remove</span>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
             
             {/* Order Summary */}
@@ -172,14 +235,14 @@ export default function CartPage() {
               
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Items ({itemCount})</span>
-                  <span className="font-medium">Rp{cartTotal.toLocaleString()}</span>
+                  <span className="text-gray-600">Selected Items ({selectedItemsCount})</span>
+                  <span className="font-medium">Rp{selectedItemsTotal.toLocaleString()}</span>
                 </div>
                 
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>Rp{cartTotal.toLocaleString()}</span>
+                    <span>Rp{selectedItemsTotal.toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -191,12 +254,27 @@ export default function CartPage() {
                       to check shipping costs</span>
                 </div>
                 
-                <Link
-                  href="/checkout"
-                  className="block w-full py-3 px-6 bg-[#FFC30C] text-white text-center rounded-full hover:bg-yellow-500 transition-colors duration-200"
+                <button
+                  onClick={() => {
+                    if (selectedItems.size === 0) {
+                      alert('Please select at least one item to checkout');
+                      return;
+                    }
+                    // You can pass selected items to checkout page via state or context
+                    const selectedCartItems = cartItems.filter(item => selectedItems.has(item.id));
+                    // Store selected items in sessionStorage or pass via router state
+                    sessionStorage.setItem('selectedCartItems', JSON.stringify(selectedCartItems));
+                    router.push('/checkout');
+                  }}
+                  disabled={selectedItems.size === 0}
+                  className={`block w-full py-3 px-6 text-white text-center rounded-full transition-colors duration-200 ${
+                    selectedItems.size === 0
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-[#FFC30C] hover:bg-yellow-500'
+                  }`}
                 >
-                  Checkout
-                </Link>
+                  Checkout {selectedItems.size > 0 && `(${selectedItems.size} items)`}
+                </button>
                 
                 <Link
                   href="/products"
